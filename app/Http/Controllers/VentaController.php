@@ -10,6 +10,7 @@ use App\Models\Venta;
 use App\Models\Producto;
 use App\Models\VentaDetalle;
 use Illuminate\Http\Request;
+use App\Models\Cliente;
 
 class VentaController extends Controller
 {
@@ -60,6 +61,13 @@ class VentaController extends Controller
                 ]);
             }
         }
+        $cliente = Cliente::where('cedula', $validatedData['cliente'])->first();
+        if ($cliente) {
+            $cliente->increment('numero_de_compras');
+            $cliente->save();
+        }
+
+
 
         return response()->json($venta->load('detalles'), 201);
     }

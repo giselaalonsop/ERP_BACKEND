@@ -29,9 +29,7 @@ class AuthenticatedSessionController extends Controller
     public function getUsers(Request $request)
     {
         // Ensure the user is authenticated
-        if (!Auth::check()) {
-            return response()->json(['message' => 'Unauthorized'], 401);
-        }
+
 
         // Retrieve all users
         $users = User::all();

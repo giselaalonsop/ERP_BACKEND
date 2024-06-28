@@ -35,15 +35,21 @@ Route::middleware('role:admin')->group(function () {
     Route::get('/categorias', [CategoriaController::class, 'index']);
     Route::post('productos/{producto}/cargar', [ProductoController::class, 'cargarInventario']);
     Route::post('productos/{producto}/descargar', [ProductoController::class, 'descargarInventario']);
-    Route::get('/users', [AuthenticatedSessionController::class, 'getUsers']);
     Route::post('/register', [RegisteredUserController::class, 'store']);
-    Route::put('/users/{id}', [AuthenticatedSessionController::class, 'update']);
+    Route::put('/users/{id}', [RegisteredUserController::class, 'update']);
     Route::delete('/users/{id}', [AuthenticatedSessionController::class, 'delete']);
+    Route::get('/clientes/{cedula}/historial', [ClienteController::class, 'historialCompras']);
+    Route::put('/clientes/{cliente}', [ClienteController::class, 'update']);
+    Route::delete('/clientes/{cliente}', [ClienteController::class, 'destroy']);
+    Route::get('/clientes/{cedula}/historial', [ClienteController::class, 'historialCompras']);
+    Route::get('/venta-detalles', [VentaDetalleController::class, 'index']);
+    Route::post('/venta-detalles', [VentaDetalleController::class, 'store']);
+    Route::get('/venta-detalles/{ventaDetalle}', [VentaDetalleController::class, 'show']);
+    Route::put('/venta-detalles/{ventaDetalle}', [VentaDetalleController::class, 'update']);
+    Route::delete('/venta-detalles/{ventaDetalle}', [VentaDetalleController::class, 'destroy']);
 });
+Route::get('/users', [AuthenticatedSessionController::class, 'getUsers']);
 
-
-// Route::middleware('role:admin')->group(function () {
-//     Route::apiResource('productos', ProductoController::class, 'store');
-//     Route::post('productos/{id}/cargar', [ProductoController::class, 'cargarInventario']);
-//     Route::post('productos/{id}/descargar', [ProductoController::class, 'descargarInventario']);
-// });
+Route::middleware(['auth:sanctum', 'check.permission:registrarUsuarios'])->group(function () {
+    Route::post('/register', [RegisteredUserController::class, 'store']);
+});
