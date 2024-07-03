@@ -7,25 +7,11 @@ use Illuminate\Http\Request;
 
 class ProductoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         return Producto::all();
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validatedData = $request->validate([
@@ -34,16 +20,20 @@ class ProductoController extends Controller
             'descripcion' => 'nullable',
             'categoria' => 'required|max:255',
             'cantidad_en_stock' => 'required|integer',
+            'cantidad_en_stock_mayor' => 'required|integer',
             'unidad_de_medida' => 'required|max:50',
             'ubicacion' => 'nullable|max:255',
             'precio_compra' => 'required|numeric',
             'porcentaje_ganancia' => 'required|numeric',
+            'porcentaje_ganancia_mayor' => 'required|numeric',
             'forma_de_venta' => 'required|max:255',
+            'forma_de_venta_mayor' => 'required|max:255',
             'proveedor' => 'required|max:255',
             'fecha_entrada' => 'required|date',
             'fecha_caducidad' => 'nullable|date',
             'peso' => 'nullable|numeric',
             'imagen' => 'nullable|string|max:255',
+            'cantidad_por_caja' => 'required|integer',
         ]);
 
         $producto = Producto::create($validatedData);
@@ -64,27 +54,32 @@ class ProductoController extends Controller
             ->first();
 
         if ($producto) {
-            // Producto existe en la ubicación especificada
+            $cantidad_a_cargar_mayor = floor($validatedData['cantidad_a_cargar'] / $producto->cantidad_por_caja);
             $producto->cantidad_en_stock += $validatedData['cantidad_a_cargar'];
+            $producto->cantidad_en_stock_mayor += $cantidad_a_cargar_mayor;
             $producto->save();
         } else {
-            // Crear un nuevo producto en la ubicación especificada
+            $cantidad_a_cargar_mayor = floor($validatedData['cantidad_a_cargar'] / $request->input('cantidad_por_caja'));
             $nuevoProducto = Producto::create([
                 'codigo_barras' => $validatedData['codigo_barras'],
-                'nombre' => $request->input('nombre'), // Asegúrate de pasar el nombre en la solicitud
+                'nombre' => $request->input('nombre'),
                 'descripcion' => $request->input('descripcion'),
                 'categoria' => $request->input('categoria'),
                 'cantidad_en_stock' => $validatedData['cantidad_a_cargar'],
+                'cantidad_en_stock_mayor' => $cantidad_a_cargar_mayor,
                 'unidad_de_medida' => $request->input('unidad_de_medida'),
                 'ubicacion' => $validatedData['ubicacion_destino'],
                 'precio_compra' => $request->input('precio_compra'),
                 'porcentaje_ganancia' => $request->input('porcentaje_ganancia'),
+                'porcentaje_ganancia_mayor' => $request->input('porcentaje_ganancia_mayor'),
+                'forma_de_venta_mayor' => $request->input('forma_de_venta_mayor'),
                 'forma_de_venta' => $request->input('forma_de_venta'),
                 'proveedor' => $request->input('proveedor'),
                 'fecha_entrada' => $request->input('fecha_entrada'),
                 'fecha_caducidad' => $request->input('fecha_caducidad'),
                 'peso' => $request->input('peso'),
                 'imagen' => $request->input('imagen'),
+                'cantidad_por_caja' => $request->input('cantidad_por_caja'),
             ]);
 
             return response()->json($nuevoProducto, 201);
@@ -103,7 +98,6 @@ class ProductoController extends Controller
             'cantidad_a_enviar' => 'nullable|integer',
         ]);
 
-        // Encontrar el producto en la ubicación de origen
         $producto = Producto::where('codigo_barras', $validatedData['codigo_barras'])
             ->where('ubicacion', $validatedData['ubicacion_origen'])
             ->first();
@@ -118,27 +112,30 @@ class ProductoController extends Controller
 
         // Restar la cantidad en la ubicación de origen
         $producto->cantidad_en_stock -= $validatedData['cantidad_a_descargar'];
+        $cantidad_a_descargar_mayor = floor($validatedData['cantidad_a_descargar'] / $producto->cantidad_por_caja);
+        $producto->cantidad_en_stock_mayor -= $cantidad_a_descargar_mayor;
+
         $producto->save();
 
-        // Si se especifica una ubicación de destino y una cantidad a enviar
         if (isset($validatedData['ubicacion_destino']) && isset($validatedData['cantidad_a_enviar'])) {
-            // Verificar si ya existe el producto en la ubicación de destino
             $destinoProducto = Producto::where('codigo_barras', $validatedData['codigo_barras'])
                 ->where('ubicacion', $validatedData['ubicacion_destino'])
                 ->first();
 
             if ($destinoProducto) {
-                // Sumar la cantidad en la ubicación de destino
+                $cantidad_a_enviar_mayor = floor($validatedData['cantidad_a_enviar'] / $producto->cantidad_por_caja);
                 $destinoProducto->cantidad_en_stock += $validatedData['cantidad_a_enviar'];
+                $destinoProducto->cantidad_en_stock_mayor += $cantidad_a_enviar_mayor;
                 $destinoProducto->save();
             } else {
-                // Crear un nuevo producto en la ubicación de destino
+                $cantidad_a_enviar_mayor = floor($validatedData['cantidad_a_enviar'] / $producto->cantidad_por_caja);
                 $nuevoProducto = Producto::create([
                     'codigo_barras' => $validatedData['codigo_barras'],
                     'nombre' => $producto->nombre,
                     'descripcion' => $producto->descripcion,
                     'categoria' => $producto->categoria,
                     'cantidad_en_stock' => $validatedData['cantidad_a_enviar'],
+                    'cantidad_en_stock_mayor' => $cantidad_a_enviar_mayor,
                     'unidad_de_medida' => $producto->unidad_de_medida,
                     'ubicacion' => $validatedData['ubicacion_destino'],
                     'precio_compra' => $producto->precio_compra,
@@ -149,6 +146,9 @@ class ProductoController extends Controller
                     'fecha_caducidad' => $producto->fecha_caducidad,
                     'peso' => $producto->peso,
                     'imagen' => $producto->imagen,
+                    'porcentaje_ganancia_mayor' => $producto->porcentaje_ganancia_mayor,
+                    'forma_de_venta_mayor' => $producto->forma_de_venta_mayor,
+                    'cantidad_por_caja' => $producto->cantidad_por_caja,
                 ]);
 
                 return response()->json($nuevoProducto, 201);
@@ -158,34 +158,21 @@ class ProductoController extends Controller
         return response()->json($producto, 200);
     }
 
-
-    /**
-     * Display the specified resource.
-     */
     public function show(Producto $producto)
     {
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Producto $producto)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Producto $producto)
     {
         //
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Producto $producto)
     {
         //

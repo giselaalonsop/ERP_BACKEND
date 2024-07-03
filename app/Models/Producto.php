@@ -7,13 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Producto extends Model
 {
-    use HasFactory;
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
     protected $fillable = [
         'codigo_barras',
         'nombre',
@@ -31,8 +24,21 @@ class Producto extends Model
         'fecha_caducidad',
         'peso',
         'imagen',
+        'porcentaje_ganancia_mayor',
+        'forma_de_venta_mayor',
+        'cantidad_por_caja',
+        'cantidad_en_stock_mayor',
     ];
 
+    public function getPrecioVentaMayorAttribute()
+    {
+        return $this->precio_compra * (1 + $this->porcentaje_ganancia_mayor / 100);
+    }
+
+    public function getPrecioVentaDetalAttribute()
+    {
+        return $this->precio_compra * (1 + $this->porcentaje_ganancia_detal / 100);
+    }
     /**
      * The attributes that should be hidden for arrays.
      *

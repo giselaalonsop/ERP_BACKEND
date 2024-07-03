@@ -41,7 +41,7 @@ class VentaDetalleController extends Controller
             'venta_id' => 'required|exists:ventas,id',
             'codigo_barras' => 'required|string|max:255',
             'nombre' => 'required|string|max:255',
-            'cantidad' => 'required|integer',
+            'cantidad' => 'required|numeric',
             'precio_unitario' => 'required|numeric',
             'total' => 'required|numeric'
         ]);

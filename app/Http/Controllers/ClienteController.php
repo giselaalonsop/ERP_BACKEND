@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Models\Cliente;
 use Illuminate\Http\Request;
 use App\Models\Venta;
+use Illuminate\Support\Facades\Log;
 
 class ClienteController extends Controller
 {
@@ -25,25 +26,31 @@ class ClienteController extends Controller
 
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'nombre' => 'required|string|max:255',
-            'apellido' => 'required|string|max:255',
-            'correo_electronico' => 'required|string|email|max:255',
-            'numero_de_telefono' => 'required|string|max:20',
-            'direccion' => 'required|string|max:255',
-            'cedula' => 'required|string|max:20|unique:clientes,cedula',
-            'edad' => 'required|integer',
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'nombre' => 'required|string|max:255',
+                'apellido' => 'required|string|max:255',
+                'correo_electronico' => 'required|string|email|max:255',
+                'numero_de_telefono' => 'required|string|max:20',
+                'direccion' => 'required|string|max:255',
+                'cedula' => 'required|string|max:20|unique:clientes,cedula',
+                'edad' => 'required|integer',
+                'descuento' => 'required|numeric',
+            ]);
 
-        $cliente = Cliente::create(array_merge($validatedData, [
-            'numero_de_compras' => 0,
-            'cantidad_de_articulos_comprados' => 0,
-            'estatus' => 'Activo',
-            'frecuencia' => 0,
-            'fecha_de_registro' => now(),
-        ]));
+            $cliente = Cliente::create(array_merge($validatedData, [
+                'numero_de_compras' => 0,
+                'cantidad_de_articulos_comprados' => 0,
+                'estatus' => 'Activo',
+                'frecuencia' => 0,
+                'fecha_de_registro' => now(),
+            ]));
 
-        return response()->json($cliente, 201);
+            return response()->json($cliente, 201);
+        } catch (\Exception $e) {
+            Log::error('Error al registrar cliente: ' . $e->getMessage());
+            return response()->json(['error' => 'Hubo un problema al procesar la solicitud'], 500);
+        }
     }
 
     public function show(Cliente $cliente)
@@ -61,6 +68,7 @@ class ClienteController extends Controller
             'direccion' => 'sometimes|required|string|max:255',
             'cedula' => 'sometimes|required|string|max:20|unique:clientes,cedula,' . $cliente->id,
             'edad' => 'sometimes|required|integer',
+            'descuento' => 'sometimes|required|numeric',
         ]);
 
         $cliente->update($validatedData);

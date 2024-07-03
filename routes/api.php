@@ -9,6 +9,18 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\VentaController;
 use App\Http\Controllers\VentaDetalleController;
 use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\ConfiguracionController;
+use App\Http\Controllers\CierreDeCajaController;
+use App\Http\Controllers\CompraController;
+use App\Http\Controllers\ProveedorController;
+
+
+
+
+
+
+
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -47,9 +59,31 @@ Route::middleware('role:admin')->group(function () {
     Route::get('/venta-detalles/{ventaDetalle}', [VentaDetalleController::class, 'show']);
     Route::put('/venta-detalles/{ventaDetalle}', [VentaDetalleController::class, 'update']);
     Route::delete('/venta-detalles/{ventaDetalle}', [VentaDetalleController::class, 'destroy']);
+    Route::apiResource('configuraciones', ConfiguracionController::class);
+    Route::get('/ventas-pendientes', [VentaController::class, 'ventasPendientes']);
+    Route::get('/ventas', [VentaController::class, 'index']);
+    Route::get('/ventas-pendientes', [VentaController::class, 'ventasPendientes']);
+    Route::post('/ventas', [VentaController::class, 'store']);
+    Route::put('/ventas/{venta}', [VentaController::class, 'update']);
+    Route::delete('/ventas/{venta}', [VentaController::class, 'destroy']);
+
+    Route::get('/configuracion', [ConfiguracionController::class, 'getConfiguracion']);
+    Route::post('/configuracion', [ConfiguracionController::class, 'store']);
+    Route::put('/configuracion/{configuracion}', [ConfiguracionController::class, 'update']);
 });
+
 Route::get('/users', [AuthenticatedSessionController::class, 'getUsers']);
 
 Route::middleware(['auth:sanctum', 'check.permission:registrarUsuarios'])->group(function () {
     Route::post('/register', [RegisteredUserController::class, 'store']);
 });
+
+Route::get('/cierre-de-caja/{ubicacion}', [CierreDeCajaController::class, 'show']);
+Route::post('/cierre-de-caja/registrar-venta', [CierreDeCajaController::class, 'registrarVenta']);
+Route::post('/cierre-de-caja/cerrar', [CierreDeCajaController::class, 'cerrar']);
+Route::get('/cierre-de-caja', [CierreDeCajaController::class, 'index']);
+
+Route::apiResource('proveedores', ProveedorController::class);
+
+Route::apiResource('compras', CompraController::class);
+Route::post('compras/{compra}/abonar', [CompraController::class, 'abonar']);

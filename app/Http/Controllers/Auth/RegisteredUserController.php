@@ -23,6 +23,7 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'location' => ['required', 'string', 'max:255'],
             'permissions' => ['nullable', 'array'],
             'rol' => ['required', 'string'],
         ]);
@@ -39,6 +40,7 @@ class RegisteredUserController extends Controller
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'rol' => $request->rol,
+                'location' => $request->location,
                 'permissions' => $permissions,
             ]);
 
@@ -58,6 +60,7 @@ class RegisteredUserController extends Controller
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'rol' => $rol,
+                'location' => $request->location,
                 'permissions' => $permissions,
             ]);
 
@@ -78,7 +81,7 @@ class RegisteredUserController extends Controller
         $user = User::find($id);
 
         if ($user) {
-            $data = $request->only(['name', 'email', 'rol', 'permissions']);
+            $data = $request->only(['name', 'email', 'rol', 'location', 'permissions']);
             if (isset($data['permissions'])) {
                 $data['permissions'] = json_encode($data['permissions']);
             }
