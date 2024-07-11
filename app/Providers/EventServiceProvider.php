@@ -6,6 +6,7 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Database\Eloquent\Model;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -23,9 +24,51 @@ class EventServiceProvider extends ServiceProvider
     /**
      * Register any events for your application.
      */
-    public function boot(): void
+    public function boot()
     {
-        //
+        // parent::boot();
+
+        // Model::created(function ($model) {
+        //     event(new class($model, 'created')
+        //     {
+        //         public $model;
+        //         public $action;
+
+        //         public function __construct($model, $action)
+        //         {
+        //             $this->model = $model;
+        //             $this->action = $action;
+        //         }
+        //     });
+        // });
+
+        // Model::updated(function ($model) {
+        //     event(new class($model, 'updated')
+        //     {
+        //         public $model;
+        //         public $action;
+
+        //         public function __construct($model, $action)
+        //         {
+        //             $this->model = $model;
+        //             $this->action = $action;
+        //         }
+        //     });
+        // });
+
+        // Model::deleted(function ($model) {
+        //     event(new class($model, 'deleted')
+        //     {
+        //         public $model;
+        //         public $action;
+
+        //         public function __construct($model, $action)
+        //         {
+        //             $this->model = $model;
+        //             $this->action = $action;
+        //         }
+        //     });
+        // });
     }
 
     /**

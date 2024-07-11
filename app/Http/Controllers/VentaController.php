@@ -103,7 +103,7 @@ class VentaController extends Controller
     public function ventasPendientes()
     {
         $ventasPendientes = Venta::where('estado', 'Pendiente')
-            ->with('cliente') // Asegurarnos de cargar la relación con el cliente
+            // Asegurarnos de cargar la relación con el cliente
             ->get();
 
         return response()->json($ventasPendientes);

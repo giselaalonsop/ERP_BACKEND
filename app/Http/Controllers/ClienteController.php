@@ -8,6 +8,9 @@ use App\Models\Cliente;
 use Illuminate\Http\Request;
 use App\Models\Venta;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Database\QueryException;
+use Illuminate\Validation\ValidationException;
+
 
 class ClienteController extends Controller
 {
@@ -30,7 +33,7 @@ class ClienteController extends Controller
             $validatedData = $request->validate([
                 'nombre' => 'required|string|max:255',
                 'apellido' => 'required|string|max:255',
-                'correo_electronico' => 'required|string|email|max:255',
+                'correo_electronico' => 'required|string|email|max:255|unique:clientes,correo_electronico',
                 'numero_de_telefono' => 'required|string|max:20',
                 'direccion' => 'required|string|max:255',
                 'cedula' => 'required|string|max:20|unique:clientes,cedula',
@@ -47,9 +50,17 @@ class ClienteController extends Controller
             ]));
 
             return response()->json($cliente, 201);
+        } catch (ValidationException $e) {
+            return response()->json(['errors' => $e->errors()], 422);
+        } catch (QueryException $e) {
+            Log::error('Error al registrar cliente: ' . $e->getMessage());
+            if ($e->errorInfo[1] == 1062) { // Código de error para entrada duplicada
+                return response()->json(['error' => $e->getMessage()], 422);
+            }
+            return response()->json(['error' => $e->getMessage()], 500);
         } catch (\Exception $e) {
             Log::error('Error al registrar cliente: ' . $e->getMessage());
-            return response()->json(['error' => 'Hubo un problema al procesar la solicitud'], 500);
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
@@ -60,21 +71,33 @@ class ClienteController extends Controller
 
     public function update(Request $request, Cliente $cliente)
     {
-        $validatedData = $request->validate([
-            'nombre' => 'sometimes|required|string|max:255',
-            'apellido' => 'sometimes|required|string|max:255',
-            'correo_electronico' => 'sometimes|required|string|email|max:255',
-            'numero_de_telefono' => 'sometimes|required|string|max:20',
-            'direccion' => 'sometimes|required|string|max:255',
-            'cedula' => 'sometimes|required|string|max:20|unique:clientes,cedula,' . $cliente->id,
-            'edad' => 'sometimes|required|integer',
-            'descuento' => 'sometimes|required|numeric',
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'nombre' => 'sometimes|required|string|max:255',
+                'apellido' => 'sometimes|required|string|max:255',
+                'correo_electronico' => 'sometimes|required|string|email|max:255|unique:clientes,correo_electronico,' . $cliente->id,
+                'numero_de_telefono' => 'sometimes|required|string|max:20',
+                'direccion' => 'sometimes|required|string|max:255',
+                'cedula' => 'sometimes|required|string|max:20|unique:clientes,cedula,' . $cliente->id,
+                'edad' => 'sometimes|required|integer',
+                'descuento' => 'sometimes|required|numeric',
+            ]);
 
-        $cliente->update($validatedData);
+            $cliente->update($validatedData);
 
-        return response()->json($cliente);
+            return response()->json($cliente);
+        } catch (ValidationException $e) {
+            return response()->json(['errors' => $e->errors()], 422);
+        } catch (QueryException $e) {
+            Log::error('Error al actualizar cliente: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        } catch (\Exception $e) {
+            Log::error('Error al actualizar cliente: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
+
+
 
     public function destroy(Cliente $cliente)
     {

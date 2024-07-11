@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Producto;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class ProductoController extends Controller
 {
@@ -32,14 +33,27 @@ class ProductoController extends Controller
             'fecha_entrada' => 'required|date',
             'fecha_caducidad' => 'nullable|date',
             'peso' => 'nullable|numeric',
-            'imagen' => 'nullable|string|max:255',
+            'imagen' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
             'cantidad_por_caja' => 'required|integer',
         ]);
 
-        $producto = Producto::create($validatedData);
+        if ($request->hasFile('imagen')) {
+            $file = $request->file('imagen');
+            $imagenPath = "images/productos/";
+            $imagenFilename = time() . '-' . $file->getClientOriginalName();
+            $file->move(public_path($imagenPath), $imagenFilename);
+            $validatedData['imagen'] = $imagenPath . $imagenFilename;
+        }
 
-        return response()->json($producto, 201);
+        try {
+            $producto = Producto::create($validatedData);
+            return response()->json($producto, 201);
+        } catch (\Exception $e) {
+            Log::error('Error al registrar producto: ' . $e->getMessage());
+            return response()->json(['error' => 'Error al registrar el producto'], 500);
+        }
     }
+
 
     public function cargarInventario(Request $request)
     {
@@ -158,6 +172,7 @@ class ProductoController extends Controller
         return response()->json($producto, 200);
     }
 
+
     public function show(Producto $producto)
     {
         //
@@ -170,11 +185,44 @@ class ProductoController extends Controller
 
     public function update(Request $request, Producto $producto)
     {
-        //
+        $validatedData = $request->validate([
+            'codigo_barras' => 'required|max:255',
+            'nombre' => 'required|max:255',
+            'descripcion' => 'nullable',
+            'categoria' => 'required|max:255',
+            'cantidad_en_stock' => 'required|integer',
+            'cantidad_en_stock_mayor' => 'required|integer',
+            'unidad_de_medida' => 'required|max:50',
+            'ubicacion' => 'nullable|max:255',
+            'precio_compra' => 'required|numeric',
+            'porcentaje_ganancia' => 'required|numeric',
+            'porcentaje_ganancia_mayor' => 'required|numeric',
+            'forma_de_venta' => 'required|max:255',
+            'forma_de_venta_mayor' => 'required|max:255',
+            'proveedor' => 'required|max:255',
+            'fecha_entrada' => 'required|date',
+            'fecha_caducidad' => 'nullable|date',
+            'peso' => 'nullable|numeric',
+            'imagen' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
+            'cantidad_por_caja' => 'required|integer',
+        ]);
+        if ($request->hasFile('imagen')) {
+            $file = $request->file('imagen');
+            $imagenPath = "images/productos/";
+            $imagenFilename = time() . '-' . $file->getClientOriginalName();
+            $file->move(public_path($imagenPath), $imagenFilename);
+            $validatedData['imagen'] = $imagenPath . $imagenFilename;
+        }
+
+        $producto->update($validatedData);
+
+        return response()->json($producto, 200);
     }
 
     public function destroy(Producto $producto)
     {
-        //
+        $producto->delete();
+
+        return response()->json(null, 204);
     }
 }

@@ -14,6 +14,11 @@ use App\Http\Controllers\CierreDeCajaController;
 use App\Http\Controllers\CompraController;
 use App\Http\Controllers\ProveedorController;
 
+use App\Http\Controllers\AuditLogController;
+
+
+
+
 
 
 
@@ -32,21 +37,27 @@ use App\Http\Controllers\ProveedorController;
 |
 */
 
+
 Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::apiResource('ventas', VentaController::class);
-Route::apiResource('venta-detalles', VentaDetalleController::class);
+
+// Route::apiResource('ventas', VentaController::class);
+// Route::apiResource('venta-detalles', VentaDetalleController::class);
 Route::apiResource('clientes', ClienteController::class);
-// Route::post('/productos', [ProductoController::class, 'store']);
+
+
 Route::middleware('role:admin')->group(function () {
+    Route::get('/logs', [AuditLogController::class, 'index']);
     Route::post('/productos', [ProductoController::class, 'store']);
     Route::get('/productos', [ProductoController::class, 'index']);
     Route::post('/categorias', [CategoriaController::class, 'store']);
     Route::get('/categorias', [CategoriaController::class, 'index']);
     Route::post('productos/{producto}/cargar', [ProductoController::class, 'cargarInventario']);
     Route::post('productos/{producto}/descargar', [ProductoController::class, 'descargarInventario']);
+    Route::put('/productos/{producto}', [ProductoController::class, 'update']);
+    Route::delete('/productos/{producto}', [ProductoController::class, 'destroy']);
     Route::post('/register', [RegisteredUserController::class, 'store']);
     Route::put('/users/{id}', [RegisteredUserController::class, 'update']);
     Route::delete('/users/{id}', [AuthenticatedSessionController::class, 'delete']);
