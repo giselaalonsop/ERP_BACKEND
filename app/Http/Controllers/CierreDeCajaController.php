@@ -14,16 +14,26 @@ class CierreDeCajaController extends Controller
         return CierreDeCaja::with('usuario')->get();
     }
 
+    // app/Http/Controllers/CierreDeCajaController.php
+
     public function show($ubicacion)
     {
         $today = Carbon::now()->toDateString();
         $cierreDeCaja = CierreDeCaja::where('fecha', $today)
             ->where('ubicacion', $ubicacion)
-            ->where('estado', 'abierto')
             ->first();
+
+        if (!$cierreDeCaja) {
+            return response()->json(['error' => 'No hay caja abierta ni cerrada para hoy en esta ubicación.'], 400);
+        }
+
+        if ($cierreDeCaja->estado === 'cerrado') {
+            return response()->json(['message' => 'La caja del día ya fue cerrada.'], 200);
+        }
 
         return response()->json($cierreDeCaja);
     }
+
     public function registrarVenta(Request $request)
     {
         $validatedData = $request->validate([
@@ -96,5 +106,24 @@ class CierreDeCajaController extends Controller
         }
 
         return response()->json(['message' => 'Venta registrada en caja.'], 200);
+    }
+    public function cerrarCaja(Request $request)
+    {
+        $ubicacion = $request->input('ubicacion');
+        $today = Carbon::now()->toDateString();
+        $cierreDeCaja = CierreDeCaja::where('fecha', $today)
+            ->where('ubicacion', $ubicacion)
+            ->where('estado', 'abierto')
+            ->first();
+
+        if (!$cierreDeCaja) {
+            return response()->json(['error' => 'No hay caja abierta para hoy en esta ubicación.'], 400);
+        }
+
+        $cierreDeCaja->update([
+            'estado' => 'cerrado',
+        ]);
+
+        return response()->json(['message' => 'Caja cerrada exitosamente.'], 200);
     }
 }

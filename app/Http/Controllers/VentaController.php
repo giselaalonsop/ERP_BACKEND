@@ -1,7 +1,5 @@
 <?php
-// app/Http/Controllers/VentaController.php
 
-// app/Http/Controllers/VentaController.php
 namespace App\Http\Controllers;
 
 use App\Models\Venta;
@@ -9,7 +7,6 @@ use App\Models\Producto;
 use App\Models\VentaDetalle;
 use Illuminate\Http\Request;
 use App\Models\Cliente;
-use Illuminate\Validation\Rule;
 
 class VentaController extends Controller
 {
@@ -29,10 +26,10 @@ class VentaController extends Controller
             'location' => 'required|string|max:255',
             'total_venta_bs' => 'required|numeric',
             'total_venta_dol' => 'required|numeric',
-            'metodo_pago' => [
-                'required',
-                Rule::in(Venta::$metodoPagoEnum),
-            ],
+            'metodo_pago' => 'required|array',
+            'metodo_pago.*.method' => 'required|string|in:dol_efectivo,bs_punto_de_venta,bs_pago_movil,zelle,bs_efectivo,pagar_luego',
+            'metodo_pago.*.amount' => 'required|numeric',
+            'metodo_pago.*.change' => 'required|numeric',
             'productos' => 'required|array',
             'productos.*.id' => 'required|integer',
             'productos.*.cantidad' => 'required|numeric',
@@ -54,7 +51,7 @@ class VentaController extends Controller
             'location' => $validatedData['location'],
             'total_venta_bs' => $validatedData['total_venta_bs'],
             'total_venta_dol' => $validatedData['total_venta_dol'],
-            'metodo_pago' => $validatedData['metodo_pago'],
+            'metodo_pago' => json_encode($validatedData['metodo_pago']), // Almacenar como JSON
             'descuento' => $validatedData['descuento']
         ]);
 
@@ -65,8 +62,8 @@ class VentaController extends Controller
                 $producto->save();
 
                 $precioUnitario = $validatedData['mayor_o_detal'] === 'Mayor'
-                    ? $producto->precio_compra * (1 + $producto->porcentaje_ganancia_mayor / 100)
-                    : $producto->precio_compra * (1 + $producto->porcentaje_ganancia_detal / 100);
+                    ? $producto->precio_compra * (1 + ($producto->porcentaje_ganancia_mayor - $validatedData['descuento']) / 100)
+                    : $producto->precio_compra * (1 + ($producto->porcentaje_ganancia - $validatedData['descuento']) / 100);
 
                 $totalProducto = $productoData['cantidad'] * $precioUnitario;
 
@@ -97,13 +94,26 @@ class VentaController extends Controller
 
     public function update(Request $request, Venta $venta)
     {
-        $venta->update($request->all());
-        return response()->json(['message' => 'Venta actualizada.']);
+        $validatedData = $request->validate([
+            'estado' => 'required|string|max:255',
+            'metodo_pago' => 'required|array',
+            'metodo_pago.*.method' => 'required|string|in:dol_efectivo,bs_punto_de_venta,bs_pago_movil,zelle,bs_efectivo,pagar_luego',
+            'metodo_pago.*.amount' => 'required|numeric',
+            'metodo_pago.*.change' => 'required|numeric'
+        ]);
+
+        // Actualizar el estado y los métodos de pago de la venta
+        $venta->update([
+            'estado' => $validatedData['estado'],
+            'metodo_pago' => json_encode($validatedData['metodo_pago']) // Almacenar como JSON
+        ]);
+
+        return response()->json(['message' => 'Venta actualizada.', 'venta' => $venta->load('detalles')], 200);
     }
+
     public function ventasPendientes()
     {
         $ventasPendientes = Venta::where('estado', 'Pendiente')
-            // Asegurarnos de cargar la relación con el cliente
             ->get();
 
         return response()->json($ventasPendientes);

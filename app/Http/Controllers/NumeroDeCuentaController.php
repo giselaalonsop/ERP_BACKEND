@@ -47,7 +47,7 @@ class NumeroDeCuentaController extends Controller
         return response()->json($numeroDeCuenta, 200);
     }
 
-    public function delete(NumeroDeCuenta $numeroDeCuenta)
+    public function destroy(NumeroDeCuenta $numeroDeCuenta)
     {
         $numeroDeCuenta->delete();
         return response()->json(null, 204);

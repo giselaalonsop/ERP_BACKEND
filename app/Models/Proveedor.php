@@ -13,6 +13,12 @@ class Proveedor extends Model
     protected $fillable = [
         'nombre', 'empresa', 'telefono', 'correo', 'direccion',
     ];
+
+    public function numerosDeCuenta()
+    {
+        return $this->hasMany(NumeroDeCuenta::class);
+    }
+
     protected static function booted()
     {
         static::created(function ($model) {
