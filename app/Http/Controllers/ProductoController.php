@@ -44,6 +44,28 @@ class ProductoController extends Controller
             $file->move(public_path($imagenPath), $imagenFilename);
             $validatedData['imagen'] = $imagenPath . $imagenFilename;
         }
+        $productoExistente = Producto::where('codigo_barras', $validatedData['codigo_barras'])
+            ->where('nombre', $validatedData['nombre'])
+            ->where('descripcion', $validatedData['descripcion'])
+            ->where('categoria', $validatedData['categoria'])
+            ->where('cantidad_en_stock', $validatedData['cantidad_en_stock'])
+            ->where('cantidad_en_stock_mayor', $validatedData['cantidad_en_stock_mayor'])
+            ->where('unidad_de_medida', $validatedData['unidad_de_medida'])
+            ->where('ubicacion', $validatedData['ubicacion'])
+            ->where('precio_compra', $validatedData['precio_compra'])
+            ->where('porcentaje_ganancia', $validatedData['porcentaje_ganancia'])
+            ->where('porcentaje_ganancia_mayor', $validatedData['porcentaje_ganancia_mayor'])
+            ->where('forma_de_venta', $validatedData['forma_de_venta'])
+            ->where('forma_de_venta_mayor', $validatedData['forma_de_venta_mayor'])
+            ->where('proveedor', $validatedData['proveedor'])
+            ->where('fecha_caducidad', $validatedData['fecha_caducidad'])
+            ->where('peso', $validatedData['peso'])
+            ->where('cantidad_por_caja', $validatedData['cantidad_por_caja'])
+            ->first();
+
+        if ($productoExistente) {
+            return response()->json(['error' => 'Ya existe un producto con los mismos valores.'], 422);
+        }
 
         try {
             $producto = Producto::create($validatedData);

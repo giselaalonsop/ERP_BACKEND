@@ -68,10 +68,8 @@ Route::middleware('role:admin')->group(function () {
     Route::delete('/clientes/{cliente}', [ClienteController::class, 'destroy']);
     Route::get('/clientes/{cedula}/historial', [ClienteController::class, 'historialCompras']);
     Route::get('/venta-detalles', [VentaDetalleController::class, 'index']);
-    Route::post('/venta-detalles', [VentaDetalleController::class, 'store']);
-    Route::get('/venta-detalles/{ventaDetalle}', [VentaDetalleController::class, 'show']);
-    Route::put('/venta-detalles/{ventaDetalle}', [VentaDetalleController::class, 'update']);
-    Route::delete('/venta-detalles/{ventaDetalle}', [VentaDetalleController::class, 'destroy']);
+    Route::get('/ventas/{id}', [VentaController::class, 'show']);
+
     Route::apiResource('configuraciones', ConfiguracionController::class);
     Route::get('/ventas-pendientes', [VentaController::class, 'ventasPendientes']);
     Route::get('/ventas', [VentaController::class, 'index']);

@@ -8,19 +8,16 @@ use Carbon\Carbon;
 
 class CierreDeCajaController extends Controller
 {
-
     public function index()
     {
         return CierreDeCaja::with('usuario')->get();
     }
 
-    // app/Http/Controllers/CierreDeCajaController.php
-
     public function show($ubicacion)
     {
-        $today = Carbon::now()->toDateString();
-        $cierreDeCaja = CierreDeCaja::where('fecha', $today)
-            ->where('ubicacion', $ubicacion)
+        $today = Carbon::today()->startOfDay();
+        $cierreDeCaja = CierreDeCaja::where('ubicacion', $ubicacion)
+            ->where('created_at', '>=', $today)
             ->first();
 
         if (!$cierreDeCaja) {
@@ -45,11 +42,11 @@ class CierreDeCajaController extends Controller
             'payments.*.change' => 'required|numeric',
         ]);
 
-        $today = Carbon::now()->toDateString();
+        $today = Carbon::today()->startOfDay();
         $ubicacion = $validatedData['location'];
 
-        $existingCierre = CierreDeCaja::where('fecha', $today)
-            ->where('ubicacion', $ubicacion)
+        $existingCierre = CierreDeCaja::where('ubicacion', $ubicacion)
+            ->where('created_at', '>=', $today)
             ->first();
 
         if ($existingCierre && $existingCierre->estado === 'cerrado') {
@@ -107,12 +104,13 @@ class CierreDeCajaController extends Controller
 
         return response()->json(['message' => 'Venta registrada en caja.'], 200);
     }
+
     public function cerrarCaja(Request $request)
     {
         $ubicacion = $request->input('ubicacion');
-        $today = Carbon::now()->toDateString();
-        $cierreDeCaja = CierreDeCaja::where('fecha', $today)
-            ->where('ubicacion', $ubicacion)
+        $today = Carbon::today()->startOfDay();
+        $cierreDeCaja = CierreDeCaja::where('ubicacion', $ubicacion)
+            ->where('created_at', '>=', $today)
             ->where('estado', 'abierto')
             ->first();
 

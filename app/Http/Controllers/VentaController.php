@@ -7,6 +7,8 @@ use App\Models\Producto;
 use App\Models\VentaDetalle;
 use Illuminate\Http\Request;
 use App\Models\Cliente;
+use App\Models\CierreDeCaja;
+use Carbon\Carbon;
 
 class VentaController extends Controller
 {
@@ -116,11 +118,67 @@ class VentaController extends Controller
         $ventasPendientes = Venta::where('estado', 'Pendiente')
             ->get();
 
-        return response()->json($ventasPendientes);
+        return response()->json($ventasPendientes->load('detalles'));
     }
 
     public function destroy(Venta $venta)
     {
+        $today = Carbon::today()->startOfDay();
+        $ubicacion = $venta->location;
+        $cierreDeCaja = CierreDeCaja::where('ubicacion', $ubicacion)
+            ->where('created_at', '>=', $today)
+            ->first();
+
+        // Revertir los productos al inventario
+        foreach ($venta->detalles as $detalle) {
+            $producto = Producto::where('codigo_barras', $detalle->codigo_barras)
+                ->where('ubicacion', $ubicacion)
+                ->first();
+
+            if ($producto) {
+                $producto->cantidad_en_stock += $detalle->cantidad;
+                $producto->save();
+            }
+        }
+
+        if ($cierreDeCaja && $cierreDeCaja->estado === 'abierto' && $venta->created_at->startOfDay()->eq($today)) {
+            $metodoPago = json_decode($venta->metodo_pago, true);
+
+            $montoTotal = $venta->total_venta_dol;
+            $dolEfectivo = 0;
+            $zelle = 0;
+            $bsEfectivo = 0;
+            $bsPuntoDeVenta = 0;
+            $bsPagoMovil = 0;
+
+            foreach ($metodoPago as $payment) {
+                switch ($payment['method']) {
+                    case 'dol_efectivo':
+                        $dolEfectivo -= $payment['amount'] - $payment['change'];
+                        break;
+                    case 'zelle':
+                        $zelle -= $payment['amount'] - $payment['change'];
+                        break;
+                    case 'bs_efectivo':
+                        $bsEfectivo -= ($payment['amount'] - $payment['change']);
+                        break;
+                    case 'bs_punto_de_venta':
+                        $bsPuntoDeVenta -= ($payment['amount'] - $payment['change']);
+                        break;
+                    case 'bs_pago_movil':
+                        $bsPagoMovil -= ($payment['amount'] - $payment['change']);
+                        break;
+                }
+            }
+
+            $cierreDeCaja->decrement('monto_total', $montoTotal);
+            $cierreDeCaja->decrement('dol_efectivo', $dolEfectivo);
+            $cierreDeCaja->decrement('zelle', $zelle);
+            $cierreDeCaja->decrement('bs_efectivo', $bsEfectivo);
+            $cierreDeCaja->decrement('bs_punto_de_venta', $bsPuntoDeVenta);
+            $cierreDeCaja->decrement('bs_pago_movil', $bsPagoMovil);
+        }
+
         $venta->delete();
         return response()->json(null, 204);
     }
