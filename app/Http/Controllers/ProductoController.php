@@ -20,7 +20,7 @@ class ProductoController extends Controller
             'nombre' => 'required|max:255',
             'descripcion' => 'nullable',
             'categoria' => 'required|max:255',
-            'cantidad_en_stock' => 'required|integer',
+            'cantidad_en_stock' => 'required|numeric',
             'cantidad_en_stock_mayor' => 'required|integer',
             'unidad_de_medida' => 'required|max:50',
             'ubicacion' => 'nullable|max:255',
@@ -44,28 +44,6 @@ class ProductoController extends Controller
             $file->move(public_path($imagenPath), $imagenFilename);
             $validatedData['imagen'] = $imagenPath . $imagenFilename;
         }
-        $productoExistente = Producto::where('codigo_barras', $validatedData['codigo_barras'])
-            ->where('nombre', $validatedData['nombre'])
-            ->where('descripcion', $validatedData['descripcion'])
-            ->where('categoria', $validatedData['categoria'])
-            ->where('cantidad_en_stock', $validatedData['cantidad_en_stock'])
-            ->where('cantidad_en_stock_mayor', $validatedData['cantidad_en_stock_mayor'])
-            ->where('unidad_de_medida', $validatedData['unidad_de_medida'])
-            ->where('ubicacion', $validatedData['ubicacion'])
-            ->where('precio_compra', $validatedData['precio_compra'])
-            ->where('porcentaje_ganancia', $validatedData['porcentaje_ganancia'])
-            ->where('porcentaje_ganancia_mayor', $validatedData['porcentaje_ganancia_mayor'])
-            ->where('forma_de_venta', $validatedData['forma_de_venta'])
-            ->where('forma_de_venta_mayor', $validatedData['forma_de_venta_mayor'])
-            ->where('proveedor', $validatedData['proveedor'])
-            ->where('fecha_caducidad', $validatedData['fecha_caducidad'])
-            ->where('peso', $validatedData['peso'])
-            ->where('cantidad_por_caja', $validatedData['cantidad_por_caja'])
-            ->first();
-
-        if ($productoExistente) {
-            return response()->json(['error' => 'Ya existe un producto con los mismos valores.'], 422);
-        }
 
         try {
             $producto = Producto::create($validatedData);
@@ -75,6 +53,7 @@ class ProductoController extends Controller
             return response()->json(['error' => 'Error al registrar el producto'], 500);
         }
     }
+
 
 
     public function cargarInventario(Request $request)
@@ -126,6 +105,7 @@ class ProductoController extends Controller
 
     public function descargarInventario(Request $request)
     {
+        Log::info('Datos recibidos en la solicitud', ['data' => $request->all()]);
         $validatedData = $request->validate([
             'codigo_barras' => 'required|string|max:255',
             'cantidad_a_descargar' => 'required|integer',
@@ -195,6 +175,7 @@ class ProductoController extends Controller
     }
 
 
+
     public function show(Producto $producto)
     {
         //
@@ -207,39 +188,35 @@ class ProductoController extends Controller
 
     public function update(Request $request, Producto $producto)
     {
+        // Log para verificar los datos recibidos en la solicitud
+        Log::info('Datos recibidos en la solicitud', ['data' => $request->all()]);
+
         $validatedData = $request->validate([
-            'codigo_barras' => 'required|max:255',
-            'nombre' => 'required|max:255',
+            'codigo_barras' => 'sometimes|required|max:255',
+            'nombre' => 'sometimes|required|max:255',
             'descripcion' => 'nullable',
-            'categoria' => 'required|max:255',
-            'cantidad_en_stock' => 'required|integer',
-            'cantidad_en_stock_mayor' => 'required|integer',
-            'unidad_de_medida' => 'required|max:50',
+            'categoria' => 'sometimes|required|max:255',
+            'cantidad_en_stock' => 'sometimes|required|numeric',
+            'cantidad_en_stock_mayor' => 'sometimes|required|integer',
+            'unidad_de_medida' => 'sometimes|required|max:50',
             'ubicacion' => 'nullable|max:255',
-            'precio_compra' => 'required|numeric',
-            'porcentaje_ganancia' => 'required|numeric',
-            'porcentaje_ganancia_mayor' => 'required|numeric',
-            'forma_de_venta' => 'required|max:255',
-            'forma_de_venta_mayor' => 'required|max:255',
-            'proveedor' => 'required|max:255',
-            'fecha_entrada' => 'required|date',
+            'precio_compra' => 'sometimes|required|numeric',
+            'porcentaje_ganancia' => 'sometimes|required|numeric',
+            'porcentaje_ganancia_mayor' => 'sometimes|required|numeric',
+            'forma_de_venta' => 'sometimes|required|max:255',
+            'forma_de_venta_mayor' => 'sometimes|required|max:255',
+            'proveedor' => 'sometimes|required|max:255',
+            'fecha_entrada' => 'sometimes|required|date',
             'fecha_caducidad' => 'nullable|date',
             'peso' => 'nullable|numeric',
             'imagen' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
-            'cantidad_por_caja' => 'required|integer',
+            'cantidad_por_caja' => 'sometimes|required|integer',
         ]);
-        if ($request->hasFile('imagen')) {
-            $file = $request->file('imagen');
-            $imagenPath = "images/productos/";
-            $imagenFilename = time() . '-' . $file->getClientOriginalName();
-            $file->move(public_path($imagenPath), $imagenFilename);
-            $validatedData['imagen'] = $imagenPath . $imagenFilename;
-        }
-
         $producto->update($validatedData);
 
         return response()->json($producto, 200);
     }
+
 
     public function destroy(Producto $producto)
     {

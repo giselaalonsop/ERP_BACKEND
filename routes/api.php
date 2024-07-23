@@ -16,14 +16,7 @@ use App\Http\Controllers\ProveedorController;
 
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\NumeroDeCuentaController;
-
-
-
-
-
-
-
-
+use App\Http\Controllers\ReportController;
 
 
 
@@ -50,6 +43,7 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
 
 
 Route::middleware('role:admin')->group(function () {
+    Route::get('/analisis', [ReportController::class, 'getReportData']);
     Route::get('/logs', [AuditLogController::class, 'index']);
     Route::post('/productos', [ProductoController::class, 'store']);
     Route::get('/productos', [ProductoController::class, 'index']);
@@ -57,7 +51,7 @@ Route::middleware('role:admin')->group(function () {
     Route::get('/categorias', [CategoriaController::class, 'index']);
     Route::post('productos/{producto}/cargar', [ProductoController::class, 'cargarInventario']);
     Route::post('productos/{producto}/descargar', [ProductoController::class, 'descargarInventario']);
-    Route::put('/productos/{producto}', [ProductoController::class, 'update']);
+    Route::post('/productos/{producto}', [ProductoController::class, 'update']);
     Route::delete('/productos/{producto}', [ProductoController::class, 'destroy']);
     Route::post('/register', [RegisteredUserController::class, 'store']);
     Route::put('/users/{id}', [RegisteredUserController::class, 'update']);
@@ -65,6 +59,7 @@ Route::middleware('role:admin')->group(function () {
     Route::get('/clientes/{cedula}/historial', [ClienteController::class, 'historialCompras']);
     Route::put('/clientes/{cliente}', [ClienteController::class, 'update']);
     Route::get('/clientes', [ClienteController::class, 'index']);
+    Route::post('/clientes', [ClienteController::class, 'store']);
     Route::delete('/clientes/{cliente}', [ClienteController::class, 'destroy']);
     Route::get('/clientes/{cedula}/historial', [ClienteController::class, 'historialCompras']);
     Route::get('/venta-detalles', [VentaDetalleController::class, 'index']);
