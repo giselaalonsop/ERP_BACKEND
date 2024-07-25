@@ -190,6 +190,54 @@ class ReportController extends Controller
                 ->get();
 
             Log::info('Top 3 Productos', ['data' => $topProductos]);
+            $ventaPromedio = DB::table('ventas')
+                ->where('location', $location)
+                ->avg('total_venta_dol');
+
+            Log::info('Venta Promedio', ['data' => $ventaPromedio]);
+
+            // Pagos pendientes (compras con estado pendiente)
+            $pagosPendientes = DB::table('compras')
+                ->where('estado', 'pendiente')
+                ->select(DB::raw('SUM(monto_total) as total_pendiente, COUNT(*) as cantidad_pendiente'))
+                ->first();
+
+            Log::info('Pagos Pendientes', ['data' => $pagosPendientes]);
+
+            // Productos vencidos
+            $productosVencidos = DB::table('productos')
+                ->where('ubicacion', $location)
+                ->whereDate('fecha_caducidad', '<', now())
+                ->select('nombre', 'codigo_barras', 'fecha_caducidad')
+                ->get();
+
+            Log::info('Productos Vencidos', ['data' => $productosVencidos]);
+
+            // Cobros pendientes (ventas con estado pendiente)
+            $cobrosPendientes = DB::table('ventas')
+                ->where('estado', 'pendiente')
+
+                ->select(DB::raw('SUM(total_venta_dol) as total_pendiente, COUNT(*) as cantidad_pendiente'))
+                ->first();
+
+            Log::info('Cobros Pendientes', ['data' => $cobrosPendientes]);
+
+            // Clientes que tienen más de un mes sin ir
+            $clientesInactivos = DB::table('clientes')
+                ->join('ventas', 'clientes.cedula', '=', 'ventas.cliente')
+                ->where('ventas.location', $location)
+                ->whereDate('ventas.created_at', '<', now()->subMonth())
+                ->select('clientes.nombre', 'clientes.cedula', DB::raw('MAX(ventas.created_at) as ultima_compra'))
+                ->groupBy('clientes.nombre', 'clientes.cedula')
+                ->havingRaw('MAX(ventas.created_at) < ?', [now()->subMonth()])
+                ->get()
+                ->map(function ($item) {
+                    $item->ultima_compra = Carbon::parse($item->ultima_compra)->format('Y-m-d');
+                    return $item;
+                });
+
+            Log::info('Clientes Inactivos', ['data' => $clientesInactivos]);
+
 
             return response()->json([
                 'topCategorias' => $topCategorias->isEmpty() ? [] : $topCategorias,
@@ -220,6 +268,17 @@ class ReportController extends Controller
                 'productosVencimiento' => $productosVencimiento->isEmpty() ? [] : $productosVencimiento,
                 'historialVentas' => $historialVentas->isEmpty() ? [] : $historialVentas,
                 'topProductos' => $topProductos->isEmpty() ? [] : $topProductos,
+                'ventaPromedio' => $ventaPromedio ?? 0,
+                'pagosPendientes' => [
+                    'total' => $pagosPendientes->total_pendiente ?? 0,
+                    'cantidad' => $pagosPendientes->cantidad_pendiente ?? 0,
+                ],
+                'productosVencidos' => $productosVencidos->isEmpty() ? [] : $productosVencidos,
+                'cobrosPendientes' => [
+                    'total' => $cobrosPendientes->total_pendiente ?? 0,
+                    'cantidad' => $cobrosPendientes->cantidad_pendiente ?? 0,
+                ],
+                'clientesInactivos' => $clientesInactivos->isEmpty() ? [] : $clientesInactivos,
             ]);
         } catch (\Exception $e) {
             Log::error('Error in getReportData', ['message' => $e->getMessage()]);
