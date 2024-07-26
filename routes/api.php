@@ -31,15 +31,27 @@ use App\Http\Controllers\ReportController;
 |
 */
 
-
+Route::middleware('role:user')->group(function () {
+    Route::get('/productos', [ProductoController::class, 'index']);
+    Route::get('/analisis', [ReportController::class, 'getReportData']);
+    Route::get('/categorias', [CategoriaController::class, 'index']);
+    Route::get('/clientes/{cedula}/historial', [ClienteController::class, 'historialCompras']);
+    Route::get('/clientes', [ClienteController::class, 'index']);
+    Route::get('/clientes/{cedula}/historial', [ClienteController::class, 'historialCompras']);
+    Route::get('/venta-detalles', [VentaDetalleController::class, 'index']);
+    Route::get('/ventas/{id}', [VentaController::class, 'show']);
+    Route::get('/ventas-pendientes', [VentaController::class, 'ventasPendientes']);
+    Route::get('/ventas', [VentaController::class, 'index']);
+    Route::get('/ventas-pendientes', [VentaController::class, 'ventasPendientes']);
+    Route::get('/configuracion', [ConfiguracionController::class, 'getConfiguracion']);
+    Route::get('/compras', [CompraController::class, 'index']);
+    Route::get('/proveedores', [ProveedorController::class, 'index']);
+    Route::get('/cierre-de-caja/{ubicacion}', [CierreDeCajaController::class, 'show']);
+});
 Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
 });
 
-
-// Route::apiResource('ventas', VentaController::class);
-// Route::apiResource('venta-detalles', VentaDetalleController::class);
-// Route::apiResource('clientes', ClienteController::class);
 
 
 Route::middleware('role:admin')->group(function () {
@@ -64,8 +76,6 @@ Route::middleware('role:admin')->group(function () {
     Route::get('/clientes/{cedula}/historial', [ClienteController::class, 'historialCompras']);
     Route::get('/venta-detalles', [VentaDetalleController::class, 'index']);
     Route::get('/ventas/{id}', [VentaController::class, 'show']);
-
-    Route::apiResource('configuraciones', ConfiguracionController::class);
     Route::get('/ventas-pendientes', [VentaController::class, 'ventasPendientes']);
     Route::get('/ventas', [VentaController::class, 'index']);
     Route::get('/ventas-pendientes', [VentaController::class, 'ventasPendientes']);
@@ -80,9 +90,7 @@ Route::middleware('role:admin')->group(function () {
     Route::post('/compras', [CompraController::class, 'store']);
     Route::put('/compras/{compra}', [CompraController::class, 'update']);
     Route::delete('/compras/{compra}', [CompraController::class, 'destroy']);
-    Route::apiResource('/numeros-de-cuenta', NumeroDeCuentaController::class);
-    Route::apiResource('/compras', CompraController::class);
-
+    Route::post('compras/{compra}/abonar', [CompraController::class, 'abonar']);
     Route::get('/configuracion', [ConfiguracionController::class, 'getConfiguracion']);
     Route::post('/configuracion', [ConfiguracionController::class, 'store']);
     Route::put('/configuracion/{configuracion}', [ConfiguracionController::class, 'update']);
@@ -90,17 +98,62 @@ Route::middleware('role:admin')->group(function () {
     Route::post('/cierre-de-caja/registrar-venta', [CierreDeCajaController::class, 'registrarVenta']);
     Route::post('/cierre-de-caja/cerrar/{ubicacion}', [CierreDeCajaController::class, 'cerrarCaja']);
     Route::get('/cierre-de-caja', [CierreDeCajaController::class, 'index']);
+    Route::get('/users', [AuthenticatedSessionController::class, 'getUsers']);
 });
-
-Route::get('/users', [AuthenticatedSessionController::class, 'getUsers']);
 
 Route::middleware(['auth:sanctum', 'check.permission:registrarUsuarios'])->group(function () {
     Route::post('/register', [RegisteredUserController::class, 'store']);
 });
+Route::middleware(['auth:sanctum', 'check.permission:facturacion'])->group(function () {
+    Route::post('/ventas', [VentaController::class, 'store']);
+    Route::put('/ventas/{venta}', [VentaController::class, 'update']);
+    Route::delete('/ventas/{venta}', [VentaController::class, 'destroy']);
+    Route::post('/cierre-de-caja/registrar-venta', [CierreDeCajaController::class, 'registrarVenta']);
+});
 
+Route::middleware(['auth:sanctum', 'check.permission:registrarProductos'])->group(function () {
+    Route::post('/productos', [ProductoController::class, 'store']);
+    Route::post('/categorias', [CategoriaController::class, 'store']);
+    Route::post('productos/{producto}/cargar', [ProductoController::class, 'cargarInventario']);
+    Route::post('productos/{producto}/descargar', [ProductoController::class, 'descargarInventario']);
+    Route::post('/productos/{producto}', [ProductoController::class, 'update']);
+    Route::delete('/productos/{producto}', [ProductoController::class, 'destroy']);
+});
+Route::middleware(['auth:sanctum', 'check.permission:registrarClientes'])->group(function () {
+    Route::post('/clientes', [ClienteController::class, 'store']);
+    Route::put('/clientes/{cliente}', [ClienteController::class, 'update']);
+    Route::delete('/clientes/{cliente}', [ClienteController::class, 'destroy']);
+});
+Route::middleware(['auth:sanctum', 'check.permission:agregarProveedores'])->group(function () {
+    Route::get('/proveedores', [ProveedorController::class, 'index']);
+    Route::post('/proveedores', [ProveedorController::class, 'store']);
+    Route::put('/proveedores/{proveedor}', [ProveedorController::class, 'update']);
+    Route::delete('/proveedores/{proveedor}', [ProveedorController::class, 'destroy']);
+});
+Route::middleware(['auth:sanctum', 'check.permission:registrarCompras'])->group(function () {
+    Route::get('/compras', [CompraController::class, 'index']);
+    Route::post('/compras', [CompraController::class, 'store']);
+    Route::put('/compras/{compra}', [CompraController::class, 'update']);
+    Route::delete('/compras/{compra}', [CompraController::class, 'destroy']);
+    Route::post('compras/{compra}/abonar', [CompraController::class, 'abonar']);
+});
+Route::middleware(['auth:sanctum', 'check.permission:configuracion'])->group(function () {
+    Route::get('/configuracion', [ConfiguracionController::class, 'getConfiguracion']);
+    Route::post('/configuracion', [ConfiguracionController::class, 'store']);
+    Route::put('/configuracion/{configuracion}', [ConfiguracionController::class, 'update']);
+});
 
-
-Route::apiResource('proveedores', ProveedorController::class);
-
-Route::apiResource('compras', CompraController::class);
-Route::post('compras/{compra}/abonar', [CompraController::class, 'abonar']);
+Route::middleware(['auth:sanctum', 'check.permission:verUsuarios'])->group(function () {
+    Route::get('/users', [AuthenticatedSessionController::class, 'getUsers']);
+});
+Route::middleware(['auth:sanctum', 'check.permission:cargaInventario'])->group(function () {
+    Route::post('productos/{producto}/cargar', [ProductoController::class, 'cargarInventario']);
+});
+Route::middleware(['auth:sanctum', 'check.permission:descargaInventario'])->group(function () {
+    Route::post('productos/{producto}/descargar', [ProductoController::class, 'descargarInventario']);
+});
+Route::middleware(['auth:sanctum', 'check.permission:cierreDeCaja'])->group(function () {
+    Route::get('/cierre-de-caja/{ubicacion}', [CierreDeCajaController::class, 'show']);
+    Route::post('/cierre-de-caja/cerrar/{ubicacion}', [CierreDeCajaController::class, 'cerrarCaja']);
+    Route::get('/cierre-de-caja', [CierreDeCajaController::class, 'index']);
+});

@@ -28,10 +28,6 @@ class AuthenticatedSessionController extends Controller
      */
     public function getUsers(Request $request)
     {
-        // Ensure the user is authenticated
-
-
-        // Retrieve all users
         $users = User::all();
 
         return response()->json($users);
