@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 class Categoria extends Model
 {
     use HasFactory;
-    protected $fillable = ['nombre'];
+    protected $fillable = ['nombre', 'habilitar'];
     protected static function booted()
     {
         static::created(function ($model) {

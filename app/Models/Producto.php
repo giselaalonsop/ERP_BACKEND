@@ -30,6 +30,7 @@ class Producto extends Model
         'forma_de_venta_mayor',
         'cantidad_por_caja',
         'cantidad_en_stock_mayor',
+        'habilitar',
     ];
     protected static function booted()
     {

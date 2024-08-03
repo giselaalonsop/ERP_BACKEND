@@ -11,7 +11,7 @@ class Proveedor extends Model
     use HasFactory;
 
     protected $fillable = [
-        'nombre', 'empresa', 'telefono', 'correo', 'direccion',
+        'nombre', 'empresa', 'telefono', 'correo', 'direccion','habilitar',
     ];
 
     public function numerosDeCuenta()

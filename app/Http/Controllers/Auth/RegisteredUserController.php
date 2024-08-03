@@ -21,6 +21,7 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'cedula' => ['required', 'string', 'max:20', 'unique:' . User::class],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'location' => ['required', 'string', 'max:255'],
@@ -37,6 +38,7 @@ class RegisteredUserController extends Controller
 
             $user = User::create([
                 'name' => $request->name,
+                'cedula' => $request->cedula,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'rol' => $request->rol,
@@ -57,6 +59,7 @@ class RegisteredUserController extends Controller
 
             $user = User::create([
                 'name' => $request->name,
+                'cedula' => $request->cedula,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'rol' => $rol,
@@ -81,7 +84,7 @@ class RegisteredUserController extends Controller
         $user = User::find($id);
 
         if ($user) {
-            $data = $request->only(['name', 'email', 'rol', 'location', 'permissions']);
+            $data = $request->only(['name', 'cedula', 'email', 'rol', 'location', 'permissions']);
             if (isset($data['permissions'])) {
                 $data['permissions'] = json_encode($data['permissions']);
             }

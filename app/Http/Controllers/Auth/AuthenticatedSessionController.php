@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -16,6 +17,12 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): Response
     {
+        //no poder inciar si habilitar es 0
+        $credentials = $request->only('email', 'password');
+        $user = User::where('email', $credentials['email'])->first();
+        if ($user->habilitar == 0) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
         $request->authenticate();
 
         $request->session()->regenerate();
@@ -28,9 +35,28 @@ class AuthenticatedSessionController extends Controller
      */
     public function getUsers(Request $request)
     {
-        $users = User::all();
+        $users = User::where('habilitar', 1)->get();
+
 
         return response()->json($users);
+    }
+    public function inHabilitados(Request $request)
+    {
+        $users = User::where('habilitar', 0)->get();
+        return response()->json($users);
+    }
+    public function habilitar($id)
+    {
+        try {
+            $user = User::findOrFail($id);
+            $user->habilitar = 1;
+            $user->save();
+
+            return response()->json(['message' => 'User habilitado correctamente'], 200);
+        } catch (\Exception $e) {
+
+            return response()->json(['message' => 'Error al habilitar el user', 'error' => $e->getMessage()], 500);
+        }
     }
     public function update(Request $request, $id)
     {
@@ -51,13 +77,17 @@ class AuthenticatedSessionController extends Controller
 
         return response()->noContent();
     }
-    public function delete($id)
+    public function deshabilitar($id)
     {
-        $user = User::find($id);
-        if ($user) {
-            $user->delete();
-            return response()->json(['message' => 'User deleted successfully']);
+        try {
+            $user = User::findOrFail($id);
+            $user->habilitar = 0;
+            $user->save();
+
+            return response()->json(['message' => 'User deshabilitado correctamente'], 200);
+        } catch (\Exception $e) {
+
+            return response()->json(['message' => 'Error al deshabilitar el user', 'error' => $e->getMessage()], 500);
         }
-        return response()->json(['message' => 'User not found'], 404);
     }
 }

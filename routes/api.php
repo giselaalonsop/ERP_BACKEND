@@ -17,6 +17,9 @@ use App\Http\Controllers\ProveedorController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\NumeroDeCuentaController;
 use App\Http\Controllers\ReportController;
+use App\Models\Proveedor;
+use App\Http\Controllers\FormaDeVentaController;
+use App\Http\Controllers\UnidadDeMedidaController;
 
 
 
@@ -47,6 +50,9 @@ Route::middleware('role:user')->group(function () {
     Route::get('/compras', [CompraController::class, 'index']);
     Route::get('/proveedores', [ProveedorController::class, 'index']);
     Route::get('/cierre-de-caja/{ubicacion}', [CierreDeCajaController::class, 'show']);
+    Route::get('/clientes/{cedula}/ultimaCompra', [ClienteController::class, 'ultimaCompra']);
+    Route::get('/unidadMedida', [UnidadDeMedidaController::class, 'index']);
+    Route::get('/formasVenta', [FormaDeVentaController::class, 'index']);
 });
 Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
@@ -67,7 +73,7 @@ Route::middleware('role:admin')->group(function () {
     Route::delete('/productos/{producto}', [ProductoController::class, 'destroy']);
     Route::post('/register', [RegisteredUserController::class, 'store']);
     Route::put('/users/{id}', [RegisteredUserController::class, 'update']);
-    Route::delete('/users/{id}', [AuthenticatedSessionController::class, 'delete']);
+    Route::put('/users/borrar/{id}', [AuthenticatedSessionController::class, 'deshabilitar']);
     Route::get('/clientes/{cedula}/historial', [ClienteController::class, 'historialCompras']);
     Route::put('/clientes/{cliente}', [ClienteController::class, 'update']);
     Route::get('/clientes', [ClienteController::class, 'index']);
@@ -99,6 +105,27 @@ Route::middleware('role:admin')->group(function () {
     Route::post('/cierre-de-caja/cerrar/{ubicacion}', [CierreDeCajaController::class, 'cerrarCaja']);
     Route::get('/cierre-de-caja', [CierreDeCajaController::class, 'index']);
     Route::get('/users', [AuthenticatedSessionController::class, 'getUsers']);
+    Route::get('/clientes/{cedula}/ultimaCompra', [ClienteController::class, 'ultimaCompra']);
+    Route::get('/productos/inhabilitados', [ProductoController::class, 'inhabilitados']);
+    Route::post('/productos/{id}/habilitar', [ProductoController::class, 'habilitar']);
+    Route::get('/clientes/inhabilitados', [ClienteController::class, 'inHabilitados']);
+    Route::post('/clientes/{id}/habilitar', [ClienteController::class, 'habilitar']);
+    Route::put('/categorias/habilitar/{id}', [CategoriaController::class, 'habilitar']);
+    Route::get('/categorias/inhabilitadas', [CategoriaController::class, 'inHabilitados']);
+    Route::delete('categorias/{categoria}', [CategoriaController::class, 'destroy']);
+    Route::put('/categorias/{categoria}', [CategoriaController::class, 'update']);
+    Route::put('/proveedor/habilitar/{id}', [ProveedorController::class, 'habilitar']);
+    Route::get('/proveedores/inhabilitados', [ProveedorController::class, 'inHabilitados']);
+    Route::get('/usuarios/inhabilitados', [AuthenticatedSessionController::class, 'inHabilitados']);
+    Route::put('/usuarios/habilitar/{id}', [AuthenticatedSessionController::class, 'habilitar']);
+    Route::get('/formasVenta', [FormaDeVentaController::class, 'index']);
+    Route::post('/formasVenta', [FormaDeVentaController::class, 'store']);
+    Route::put('/formasVenta/{formaDeVenta}', [FormaDeVentaController::class, 'update']);
+    Route::delete('/formasVenta/{formaDeVenta}', [FormaDeVentaController::class, 'destroy']);
+    Route::get('/unidadMedida', [UnidadDeMedidaController::class, 'index']);
+    Route::post('/unidadMedida', [UnidadDeMedidaController::class, 'store']);
+    Route::put('/unidadMedida/{unidadDeMedida}', [UnidadDeMedidaController::class, 'update']);
+    Route::delete('/unidadMedida/{unidadDeMedida}', [UnidadDeMedidaController::class, 'destroy']);
 });
 
 Route::middleware(['auth:sanctum', 'check.permission:registrarUsuarios'])->group(function () {
@@ -109,6 +136,9 @@ Route::middleware(['auth:sanctum', 'check.permission:facturacion'])->group(funct
     Route::put('/ventas/{venta}', [VentaController::class, 'update']);
     Route::delete('/ventas/{venta}', [VentaController::class, 'destroy']);
     Route::post('/cierre-de-caja/registrar-venta', [CierreDeCajaController::class, 'registrarVenta']);
+    Route::post('/unidadMedida', [UnidadDeMedidaController::class, 'store']);
+    Route::post('/categorias', [CategoriaController::class, 'store']);
+    Route::post('/formasVenta', [FormaDeVentaController::class, 'store']);
 });
 
 Route::middleware(['auth:sanctum', 'check.permission:registrarProductos'])->group(function () {
@@ -141,6 +171,16 @@ Route::middleware(['auth:sanctum', 'check.permission:configuracion'])->group(fun
     Route::get('/configuracion', [ConfiguracionController::class, 'getConfiguracion']);
     Route::post('/configuracion', [ConfiguracionController::class, 'store']);
     Route::put('/configuracion/{configuracion}', [ConfiguracionController::class, 'update']);
+    Route::delete('categorias/{categoria}', [CategoriaController::class, 'destroy']);
+    Route::post('/unidadMedida', [UnidadDeMedidaController::class, 'store']);
+    Route::post('/categorias', [CategoriaController::class, 'store']);
+    Route::post('/formasVenta', [FormaDeVentaController::class, 'store']);
+    Route::put('/unidadMedida/{unidadDeMedida}', [UnidadDeMedidaController::class, 'update']);
+    Route::delete('/unidadMedida/{unidadDeMedida}', [UnidadDeMedidaController::class, 'destroy']);
+    Route::put('/formasVenta/{formaDeVenta}', [FormaDeVentaController::class, 'update']);
+    Route::delete('/formasVenta/{formaDeVenta}', [FormaDeVentaController::class, 'destroy']);
+    Route::delete('categorias/{categoria}', [CategoriaController::class, 'destroy']);
+    Route::put('/categorias/{categoria}', [CategoriaController::class, 'update']);
 });
 
 Route::middleware(['auth:sanctum', 'check.permission:verUsuarios'])->group(function () {

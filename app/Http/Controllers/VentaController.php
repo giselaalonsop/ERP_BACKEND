@@ -125,11 +125,12 @@ class VentaController extends Controller
     {
         $today = Carbon::today()->startOfDay();
         $ubicacion = $venta->location;
-        $cierreDeCaja = CierreDeCaja::where('ubicacion', $ubicacion)
-            ->where('created_at', '>=', $today)
-            ->first();
+        if ($venta->estado !== 'Pendiente') {
+            $cierreDeCaja = CierreDeCaja::where('ubicacion', $ubicacion)
+                ->where('created_at', '>=', $today)
+                ->first();
+        }
 
-        // Revertir los productos al inventario
         foreach ($venta->detalles as $detalle) {
             $producto = Producto::where('codigo_barras', $detalle->codigo_barras)
                 ->where('ubicacion', $ubicacion)
@@ -179,7 +180,8 @@ class VentaController extends Controller
             $cierreDeCaja->decrement('bs_pago_movil', $bsPagoMovil);
         }
 
-        $venta->delete();
+        $venta->estado = 'Anulada';
+        $venta->save();
         return response()->json(null, 204);
     }
 }

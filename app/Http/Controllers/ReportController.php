@@ -34,6 +34,7 @@ class ReportController extends Controller
                 ->join('venta_detalles', 'productos.codigo_barras', '=', 'venta_detalles.codigo_barras')
                 ->join('ventas', 'venta_detalles.venta_id', '=', 'ventas.id')
                 ->where('productos.ubicacion', $location)
+                ->where('ventas.estado', '!=', 'Anulada') // Excluir devoluciones
                 ->whereBetween('ventas.created_at', [$startDate, $endDate])
                 ->select('productos.categoria', DB::raw('SUM(venta_detalles.cantidad) as total_ventas'))
                 ->groupBy('productos.categoria')
@@ -47,6 +48,7 @@ class ReportController extends Controller
                 ->join('productos', 'venta_detalles.codigo_barras', '=', 'productos.codigo_barras')
                 ->join('ventas', 'venta_detalles.venta_id', '=', 'ventas.id')
                 ->where('productos.ubicacion', $location)
+                ->where('ventas.estado', '!=', 'Anulada') // Excluir devoluciones
                 ->whereBetween('ventas.created_at', [$startDate, $endDate])
                 ->select('productos.nombre', DB::raw('SUM(venta_detalles.cantidad) as total_vendido'))
                 ->groupBy('productos.nombre')
@@ -59,6 +61,7 @@ class ReportController extends Controller
                 ->join('productos', 'venta_detalles.codigo_barras', '=', 'productos.codigo_barras')
                 ->join('ventas', 'venta_detalles.venta_id', '=', 'ventas.id')
                 ->where('productos.ubicacion', $location)
+                ->where('ventas.estado', '!=', 'Anulada') // Excluir devoluciones
                 ->whereBetween('ventas.created_at', [$startDate, $endDate])
                 ->select('productos.nombre', DB::raw('SUM(venta_detalles.cantidad) as total_vendido'))
                 ->groupBy('productos.nombre')
@@ -69,6 +72,7 @@ class ReportController extends Controller
 
             $topCliente = DB::table('ventas')
                 ->join('clientes', 'ventas.cliente', '=', 'clientes.cedula')
+                ->where('ventas.estado', '!=', 'Anulada') // Excluir devoluciones
                 ->where('ventas.location', $location)
                 ->whereBetween('ventas.created_at', [$startDate, $endDate])
                 ->select('clientes.nombre', DB::raw('COUNT(ventas.id) as total_compras'))
@@ -82,6 +86,7 @@ class ReportController extends Controller
                 ->join('productos', 'venta_detalles.codigo_barras', '=', 'productos.codigo_barras')
                 ->join('ventas', 'venta_detalles.venta_id', '=', 'ventas.id')
                 ->where('productos.ubicacion', $location)
+                ->where('ventas.estado', '!=', 'Anulada') // Excluir devoluciones
                 ->whereBetween('ventas.created_at', [$startDate, $endDate])
                 ->select(DB::raw('SUM(venta_detalles.cantidad * (productos.precio_compra * productos.porcentaje_ganancia / 100)) as total_ganancias'))
                 ->first();
@@ -90,10 +95,8 @@ class ReportController extends Controller
 
             $capital = DB::table('productos')
                 ->where('productos.ubicacion', $location)
-                ->select(DB::raw('SUM(cantidad_en_stock * (precio_compra+ (precio_compra * porcentaje_ganancia /100) )
-                ) as total_capital'))
+                ->select(DB::raw('SUM(cantidad_en_stock * (precio_compra + (precio_compra * porcentaje_ganancia / 100))) as total_capital'))
                 ->first();
-
 
             Log::info('Capital', ['data' => $capital]);
 
@@ -106,6 +109,7 @@ class ReportController extends Controller
 
             $ventasAnuales = DB::table('ventas')
                 ->whereYear('created_at', '=', date('Y'))
+                ->where('estado', '!=', 'Anulada') // Excluir devoluciones
                 ->where('ventas.location', $location)
                 ->select(DB::raw('COUNT(id) as total_ventas_cantidad, SUM(total_venta_dol) as total_ventas_anuales'))
                 ->first();
@@ -115,6 +119,7 @@ class ReportController extends Controller
             $ventasMensuales = DB::table('ventas')
                 ->whereMonth('created_at', '=', date('m'))
                 ->whereYear('created_at', '=', date('Y'))
+                ->where('estado', '!=', 'Anulada') // Excluir devoluciones
                 ->where('ventas.location', $location)
                 ->select(DB::raw('COUNT(id) as total_ventas_cantidad, SUM(total_venta_dol) as total_ventas_mensuales'))
                 ->first();
@@ -123,6 +128,7 @@ class ReportController extends Controller
 
             $ventasSemanales = DB::table('ventas')
                 ->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])
+                ->where('estado', '!=', 'Anulada') // Excluir devoluciones
                 ->where('ventas.location', $location)
                 ->select(DB::raw('COUNT(id) as total_ventas_cantidad, SUM(total_venta_dol) as total_ventas_semanales'))
                 ->first();
@@ -132,6 +138,7 @@ class ReportController extends Controller
             // Ventas en el rango de fechas seleccionado
             $ventasRango = DB::table('ventas')
                 ->where('ventas.location', $location)
+                ->where('estado', '!=', 'Anulada') // Excluir devoluciones
                 ->whereBetween('ventas.created_at', [$startDate, $endDate])
                 ->select(DB::raw('COUNT(id) as total_ventas_cantidad, SUM(total_venta_dol) as total_ventas_rango'))
                 ->first();
@@ -143,6 +150,7 @@ class ReportController extends Controller
                 ->join('productos', 'venta_detalles.codigo_barras', '=', 'productos.codigo_barras')
                 ->join('ventas', 'venta_detalles.venta_id', '=', 'ventas.id')
                 ->where('productos.ubicacion', $location)
+                ->where('ventas.estado', '!=', 'Anulada') // Excluir devoluciones
                 ->whereBetween('ventas.created_at', [$startDate, $endDate])
                 ->select(DB::raw('SUM(venta_detalles.cantidad * (productos.precio_compra * productos.porcentaje_ganancia / 100)) as total_ganancias_rango'))
                 ->first();
@@ -170,6 +178,7 @@ class ReportController extends Controller
             // Para obtener el historial de ventas en el rango de fecha
             $historialVentas = DB::table('ventas')
                 ->where('ventas.location', $location)
+                ->where('estado', '!=', 'Anulada') // Excluir devoluciones
                 ->whereBetween('ventas.created_at', [$startDate, $endDate])
                 ->select(DB::raw('DATE(ventas.created_at) as fecha'), DB::raw('SUM(total_venta_dol) as total_ventas'))
                 ->groupBy(DB::raw('DATE(ventas.created_at)'))
@@ -182,6 +191,7 @@ class ReportController extends Controller
                 ->join('productos', 'venta_detalles.codigo_barras', '=', 'productos.codigo_barras')
                 ->join('ventas', 'venta_detalles.venta_id', '=', 'ventas.id')
                 ->where('productos.ubicacion', $location)
+                ->where('ventas.estado', '!=', 'Anulada') // Excluir devoluciones
                 ->whereBetween('ventas.created_at', [$startDate, $endDate])
                 ->select('productos.nombre', DB::raw('SUM(venta_detalles.cantidad) as total_vendido'))
                 ->groupBy('productos.nombre')
@@ -190,8 +200,10 @@ class ReportController extends Controller
                 ->get();
 
             Log::info('Top 3 Productos', ['data' => $topProductos]);
+
             $ventaPromedio = DB::table('ventas')
                 ->where('location', $location)
+                ->where('estado', '!=', 'Anulada') // Excluir devoluciones
                 ->avg('total_venta_dol');
 
             Log::info('Venta Promedio', ['data' => $ventaPromedio]);
@@ -216,7 +228,7 @@ class ReportController extends Controller
             // Cobros pendientes (ventas con estado pendiente)
             $cobrosPendientes = DB::table('ventas')
                 ->where('estado', 'pendiente')
-
+                ->where('estado', '!=', 'Anulada') // Excluir devoluciones
                 ->select(DB::raw('SUM(total_venta_dol) as total_pendiente, COUNT(*) as cantidad_pendiente'))
                 ->first();
 
@@ -226,6 +238,7 @@ class ReportController extends Controller
             $clientesInactivos = DB::table('clientes')
                 ->join('ventas', 'clientes.cedula', '=', 'ventas.cliente')
                 ->where('ventas.location', $location)
+                ->where('ventas.estado', '!=', 'Anulada') // Excluir devoluciones
                 ->whereDate('ventas.created_at', '<', now()->subMonth())
                 ->select('clientes.nombre', 'clientes.cedula', DB::raw('MAX(ventas.created_at) as ultima_compra'))
                 ->groupBy('clientes.nombre', 'clientes.cedula')
@@ -238,6 +251,33 @@ class ReportController extends Controller
 
             Log::info('Clientes Inactivos', ['data' => $clientesInactivos]);
 
+            $totalDays = $startDate->diffInDays($endDate) + 1;
+
+            $ventasDiariasPromedio = DB::table('ventas')
+                ->where('ventas.location', $location)
+                ->where('ventas.estado', '!=', 'Anulada') // Excluir devoluciones
+                ->whereBetween('ventas.created_at', [$startDate, $endDate])
+                ->select(DB::raw('SUM(total_venta_dol) / ' . $totalDays . ' as promedio_diario'))
+                ->first();
+
+            $totalWeeks = ceil($totalDays / 7);
+
+            $ventasSemanalesPromedio = DB::table('ventas')
+                ->where('ventas.location', $location)
+                ->where('ventas.estado', '!=', 'Anulada') // Excluir devoluciones
+                ->whereBetween('ventas.created_at', [$startDate, $endDate])
+                ->select(DB::raw('SUM(total_venta_dol) / ' . $totalWeeks . ' as promedio_semanal'))
+                ->first();
+
+            // Devoluciones en el rango de fechas
+            $devoluciones = DB::table('ventas')
+                ->where('ventas.location', $location)
+                ->where('estado', 'Anulada') // Solo devoluciones
+                ->whereBetween('ventas.created_at', [$startDate, $endDate])
+                ->select(DB::raw('COUNT(id) as total_devoluciones, SUM(total_venta_dol) as total_devoluciones_monto'))
+                ->first();
+
+            Log::info('Devoluciones', ['data' => $devoluciones]);
 
             return response()->json([
                 'topCategorias' => $topCategorias->isEmpty() ? [] : $topCategorias,
@@ -279,6 +319,12 @@ class ReportController extends Controller
                     'cantidad' => $cobrosPendientes->cantidad_pendiente ?? 0,
                 ],
                 'clientesInactivos' => $clientesInactivos->isEmpty() ? [] : $clientesInactivos,
+                'ventasDiariasPromedio' => $ventasDiariasPromedio->promedio_diario ?? 0,
+                'ventasSemanalesPromedio' => $ventasSemanalesPromedio->promedio_semanal ?? 0,
+                'devoluciones' => [
+                    'total_devoluciones' => $devoluciones->total_devoluciones ?? 0,
+                    'total_devoluciones_monto' => $devoluciones->total_devoluciones_monto ?? 0,
+                ],
             ]);
         } catch (\Exception $e) {
             Log::error('Error in getReportData', ['message' => $e->getMessage()]);

@@ -14,7 +14,7 @@ class Venta extends Model
 
     protected $fillable = [
         'cliente', 'usuario', 'fecha', 'numero_de_venta',  'comprobante', 'estado', 'mayor_o_detal',
-        'location', 'total_venta_bs', 'metodo_pago', 'total_venta_dol', 'descuento'
+        'location', 'total_venta_bs', 'metodo_pago', 'total_venta_dol', 'descuento', 'habilitar',
     ];
     public static $metodoPagoEnum = [
         'dol_efectivo',

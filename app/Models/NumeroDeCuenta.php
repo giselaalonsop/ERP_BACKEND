@@ -11,7 +11,7 @@ class NumeroDeCuenta extends Model
     use HasFactory;
 
     protected $fillable = [
-        'proveedor_id', 'banco', 'numero_cuenta', 'rif_cedula', 'telefono', 'pago_movil',
+        'proveedor_id', 'banco', 'numero_cuenta', 'rif_cedula', 'telefono', 'pago_movil','habilitar',
     ];
 
     public function proveedor()

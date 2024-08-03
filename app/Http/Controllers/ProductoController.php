@@ -10,13 +10,24 @@ class ProductoController extends Controller
 {
     public function index()
     {
-        return Producto::all();
+        return Producto::where('habilitar', 1)->get();
+    }
+    public function inhabilitados()
+    {
+        return Producto::where('habilitar', 0)->get();
+    }
+    public function habilitar($id)
+    {
+        $producto = Producto::find($id);
+        $producto->habilitar = 1;
+        $producto->save();
+        return response()->json($producto, 200);
     }
 
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'codigo_barras' => 'required|max:255',
+            'codigo_barras' => 'required|max:255|unique:productos',
             'nombre' => 'required|max:255',
             'descripcion' => 'nullable',
             'categoria' => 'required|max:255',
@@ -192,7 +203,7 @@ class ProductoController extends Controller
         Log::info('Datos recibidos en la solicitud', ['data' => $request->all()]);
 
         $validatedData = $request->validate([
-            'codigo_barras' => 'sometimes|required|max:255',
+            'codigo_barras' => 'sometimes|required|max:255|unique:productos,codigo_barras,' . $producto->id,
             'nombre' => 'sometimes|required|max:255',
             'descripcion' => 'nullable',
             'categoria' => 'sometimes|required|max:255',
@@ -220,8 +231,9 @@ class ProductoController extends Controller
 
     public function destroy(Producto $producto)
     {
-        $producto->delete();
+        $producto->habilitar = 0; // Deshabilitar el producto
+        $producto->save(); // Guardar el cambio
 
-        return response()->json(null, 204);
+        return response()->json(null, 204); // Retorna una respuesta exitosa sin contenido
     }
 }

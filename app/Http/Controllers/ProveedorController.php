@@ -11,8 +11,26 @@ class ProveedorController extends Controller
 {
     public function index()
     {
-        return Proveedor::with('numerosDeCuenta')->get();
+        return Proveedor::where('habilitar', 1)->with('numerosDeCuenta')->get();
     }
+    public function inHabilitados()
+    {
+        return Proveedor::where('habilitar', 0)->get();
+    }
+    public function habilitar($id)
+    {
+        try {
+            $proveedor = Proveedor::findOrFail($id);
+            $proveedor->habilitar = 1; // O el campo correcto que deseas actualizar
+            $proveedor->save();
+
+            return response()->json(['message' => 'Proveedor habilitado exitosamente'], 200);
+        } catch (\Exception $e) {
+            Log::error('Error al habilitar el proveedor: ' . $e->getMessage());
+            return response()->json(['error' => 'Error al habilitar el proveedor'], 500);
+        }
+    }
+
 
     public function show(Proveedor $proveedor)
     {
@@ -78,11 +96,12 @@ class ProveedorController extends Controller
     public function destroy(Proveedor $proveedor)
     {
         try {
-            $proveedor->delete();
-            Log::info('Proveedor eliminado correctamente', ['proveedor_id' => $proveedor->id]);
+            $proveedor->habilitar = 0;
+            $proveedor->save();
+
             return response()->json(['message' => 'Proveedor eliminado correctamente'], 204);
         } catch (\Exception $e) {
-            Log::error('Error al eliminar el proveedor', ['error' => $e->getMessage()]);
+
             return response()->json(['message' => 'Error al eliminar el proveedor', 'error' => $e->getMessage()], 500);
         }
     }

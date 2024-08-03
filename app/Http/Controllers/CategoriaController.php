@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Categoria;
 use Illuminate\Http\Request;
+use App\Models\Producto;
 
 class CategoriaController extends Controller
 {
@@ -12,8 +13,20 @@ class CategoriaController extends Controller
      */
     public function index()
     {
-        $categorias = Categoria::all();
+        $categorias = Categoria::where('habilitar', 1)->get();
+
         return response()->json($categorias);
+    }
+    public function inHabilitados()
+    {
+        return Categoria::where('habilitar', 0)->get();
+    }
+    public function habilitar($id)
+    {
+        $categoria = Categoria::find($id);
+        $categoria->habilitar = 1;
+        $categoria->save();
+        return response()->json($categoria, 200);
     }
 
     /**
@@ -56,7 +69,21 @@ class CategoriaController extends Controller
      */
     public function update(Request $request, Categoria $categoria)
     {
-        //
+        $request->validate([
+            'nombre' => 'required|string|max:255',
+        ]);
+
+        $oldName = $categoria->nombre;
+        $newName = $request->nombre;
+
+        // Actualizar el nombre de la categoría
+        $categoria->nombre = $newName;
+        $categoria->save();
+
+        // Actualizar los productos que tienen esta categoría
+        Producto::where('categoria', $oldName)->update(['categoria' => $newName]);
+
+        return response()->json($categoria, 200);
     }
 
     /**
@@ -64,6 +91,7 @@ class CategoriaController extends Controller
      */
     public function destroy(Categoria $categoria)
     {
-        //
+        $categoria->habilitar = 0;
+        $categoria->save();
     }
 }

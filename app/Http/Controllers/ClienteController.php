@@ -16,8 +16,21 @@ class ClienteController extends Controller
 {
     public function index()
     {
-        return Cliente::all();
+        return Cliente::where('habilitar', 1)->get();
     }
+    public function inHabilitados()
+    {
+        return Cliente::where('habilitar', 0)->get();
+    }
+    public function habilitar($id)
+    {
+        $Cliente = Cliente::find($id);
+        $Cliente->habilitar = 1;
+        $Cliente->save();
+        return response()->json($Cliente, 200);
+    }
+
+
     public function historialCompras($cedula)
     {
         $cliente = Cliente::where('cedula', $cedula)->firstOrFail();
@@ -25,6 +38,23 @@ class ClienteController extends Controller
 
         return response()->json($compras);
     }
+    // app/Http/Controllers/ClienteController.php
+
+    public function ultimaCompra($cedula)
+    {
+        $cliente = Cliente::where('cedula', $cedula)->firstOrFail();
+        $compra = Venta::where('cliente', $cedula)->with('detalles')->latest()->first();
+
+        if ($compra) {
+            return response()->json([
+                'fecha' => $compra->created_at->format('Y-m-d'),
+
+            ]);
+        } else {
+            return response()->json(['fecha' => 'N/A']);
+        }
+    }
+
 
 
     public function store(Request $request)
@@ -101,7 +131,8 @@ class ClienteController extends Controller
 
     public function destroy(Cliente $cliente)
     {
-        $cliente->delete();
+        $cliente->habilitar = 0;
+        $cliente->save();
         return response()->json(null, 204);
     }
 }

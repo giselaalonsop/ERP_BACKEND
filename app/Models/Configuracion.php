@@ -11,7 +11,8 @@ class Configuracion extends Model
     use HasFactory;
 
     protected $fillable = [
-        'IVA', 'porcentaje_ganancia', 'nombre_empresa', 'telefono', 'rif', 'correo', 'numero_sucursales', 'direcciones', 'pago_movil', 'transferencias', 'logo',
+        'IVA', 'porcentaje_ganancia', 'nombre_empresa', 'telefono', 'rif', 'correo', 'numero_sucursales', 
+        'direcciones', 'pago_movil', 'transferencias', 'logo','habilitar',
     ];
 
     protected $casts = [
