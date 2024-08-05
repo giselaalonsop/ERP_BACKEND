@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Producto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 
 class ProductoController extends Controller
 {
@@ -44,7 +45,7 @@ class ProductoController extends Controller
             'fecha_entrada' => 'required|date',
             'fecha_caducidad' => 'nullable|date',
             'peso' => 'nullable|numeric',
-            'imagen' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
+
             'cantidad_por_caja' => 'required|integer',
         ]);
 
@@ -54,6 +55,9 @@ class ProductoController extends Controller
             $imagenFilename = time() . '-' . $file->getClientOriginalName();
             $file->move(public_path($imagenPath), $imagenFilename);
             $validatedData['imagen'] = $imagenPath . $imagenFilename;
+        } elseif (is_string($request->input('imagen'))) {
+            // Si la imagen es una cadena de texto, significa que ya existe y no se ha actualizado
+            unset($validatedData['imagen']); // No actualizar el campo
         }
 
         try {
@@ -203,7 +207,15 @@ class ProductoController extends Controller
         Log::info('Datos recibidos en la solicitud', ['data' => $request->all()]);
 
         $validatedData = $request->validate([
-            'codigo_barras' => 'sometimes|required|max:255|unique:productos,codigo_barras,' . $producto->id,
+            'codigo_barras' => [
+                'sometimes',
+                'required',
+                'max:255',
+                // Aquí se ignora el producto actual para evitar el error de unicidad
+                Rule::unique('productos')->where(function ($query) use ($request) {
+                    return $query->where('ubicacion', $request->ubicacion);
+                })->ignore($producto->id)
+            ],
             'nombre' => 'sometimes|required|max:255',
             'descripcion' => 'nullable',
             'categoria' => 'sometimes|required|max:255',
@@ -220,9 +232,17 @@ class ProductoController extends Controller
             'fecha_entrada' => 'sometimes|required|date',
             'fecha_caducidad' => 'nullable|date',
             'peso' => 'nullable|numeric',
-            'imagen' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
+            'imagen' => 'nullable',
             'cantidad_por_caja' => 'sometimes|required|integer',
         ]);
+        if ($request->hasFile('imagen')) {
+            $file = $request->file('imagen');
+            $imagenPath = "images/productos/";
+            $imagenFilename = time() . '-' . $file->getClientOriginalName();
+            $file->move(public_path($imagenPath), $imagenFilename);
+            $validatedData['imagen'] = $imagenPath . $imagenFilename;
+        }
+
         $producto->update($validatedData);
 
         return response()->json($producto, 200);

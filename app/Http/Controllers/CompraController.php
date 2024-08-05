@@ -29,6 +29,7 @@ class CompraController extends Controller
             $validatedData = $request->validate([
                 'proveedor_id' => 'required|exists:proveedors,id',
                 'usuario_id' => 'required|exists:users,id',
+                'descripcion' => 'nullable',
                 'fecha' => 'required|date',
                 'monto_total' => 'required|numeric',
                 'monto_abonado' => 'required|numeric',
@@ -58,6 +59,7 @@ class CompraController extends Controller
             'monto_total' => 'required',
             'monto_abonado' => 'required',
             'estado' => ['required', Rule::in(['pendiente', 'pagada'])],
+            'descripcion' => 'nullable',
         ]);
 
         $validatedData['monto_restante'] = $validatedData['monto_total'] - $validatedData['monto_abonado'];

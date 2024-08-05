@@ -39,10 +39,22 @@ class ReportController extends Controller
                 ->select('productos.categoria', DB::raw('SUM(venta_detalles.cantidad) as total_ventas'))
                 ->groupBy('productos.categoria')
                 ->orderBy('total_ventas', 'desc')
-                ->limit(5)
+                ->limit(3)
                 ->get();
 
             Log::info('Top Categorias', ['data' => $topCategorias]);
+            $categoriaMasVendidaRango = DB::table('productos')
+                ->join('venta_detalles', 'productos.codigo_barras', '=', 'venta_detalles.codigo_barras')
+                ->join('ventas', 'venta_detalles.venta_id', '=', 'ventas.id')
+                ->where('productos.ubicacion', $location)
+                ->where('ventas.estado', '!=', 'Anulada') // Excluir devoluciones
+                ->whereBetween('ventas.created_at', [$startDate, $endDate])
+                ->select('productos.categoria', DB::raw('SUM(venta_detalles.cantidad) as total_vendido'))
+                ->groupBy('productos.categoria')
+                ->orderBy('total_vendido', 'desc')
+                ->first();
+
+            Log::info('Categoría más vendida en rango', ['data' => $categoriaMasVendidaRango]);
 
             $topProducto = DB::table('venta_detalles')
                 ->join('productos', 'venta_detalles.codigo_barras', '=', 'productos.codigo_barras')
@@ -81,6 +93,14 @@ class ReportController extends Controller
                 ->first();
 
             Log::info('Top Cliente', ['data' => $topCliente]);
+            $mejorClientePromedio = DB::table('ventas')
+                ->join('clientes', 'ventas.cliente', '=', 'clientes.cedula')
+                ->where('ventas.estado', '!=', 'Anulada') // Excluir devoluciones
+                ->where('ventas.location', $location)
+                ->select('clientes.nombre', DB::raw('AVG(ventas.total_venta_dol) as promedio_compra'))
+                ->groupBy('clientes.nombre')
+                ->orderBy('promedio_compra', 'desc')
+                ->first();
 
             $ganancias = DB::table('venta_detalles')
                 ->join('productos', 'venta_detalles.codigo_barras', '=', 'productos.codigo_barras')
@@ -325,6 +345,8 @@ class ReportController extends Controller
                     'total_devoluciones' => $devoluciones->total_devoluciones ?? 0,
                     'total_devoluciones_monto' => $devoluciones->total_devoluciones_monto ?? 0,
                 ],
+                'mejorClientePromedio' => $mejorClientePromedio ?? (object) ['nombre' => 'N/A', 'promedio_compra' => 0],
+                'categoriaMasVendidaRango' => $categoriaMasVendidaRango ?? (object) ['categoria' => 'N/A', 'total_vendido' => 0],
             ]);
         } catch (\Exception $e) {
             Log::error('Error in getReportData', ['message' => $e->getMessage()]);

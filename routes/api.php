@@ -37,6 +37,7 @@ use App\Http\Controllers\UnidadDeMedidaController;
 Route::middleware('role:user')->group(function () {
     Route::get('/productos', [ProductoController::class, 'index']);
     Route::get('/analisis', [ReportController::class, 'getReportData']);
+
     Route::get('/categorias', [CategoriaController::class, 'index']);
     Route::get('/clientes/{cedula}/historial', [ClienteController::class, 'historialCompras']);
     Route::get('/clientes', [ClienteController::class, 'index']);
@@ -196,4 +197,31 @@ Route::middleware(['auth:sanctum', 'check.permission:cierreDeCaja'])->group(func
     Route::get('/cierre-de-caja/{ubicacion}', [CierreDeCajaController::class, 'show']);
     Route::post('/cierre-de-caja/cerrar/{ubicacion}', [CierreDeCajaController::class, 'cerrarCaja']);
     Route::get('/cierre-de-caja', [CierreDeCajaController::class, 'index']);
+});
+//ver analisis para culaquier usuario autenticado sin necesidad de algun permiso
+
+
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+    Route::get('/productos', [ProductoController::class, 'index']);
+    Route::get('/analisis', [ReportController::class, 'getReportData']);
+
+    Route::get('/categorias', [CategoriaController::class, 'index']);
+    Route::get('/clientes/{cedula}/historial', [ClienteController::class, 'historialCompras']);
+    Route::get('/clientes', [ClienteController::class, 'index']);
+    Route::get('/clientes/{cedula}/historial', [ClienteController::class, 'historialCompras']);
+    Route::get('/venta-detalles', [VentaDetalleController::class, 'index']);
+    Route::get('/ventas/{id}', [VentaController::class, 'show']);
+    Route::get('/ventas-pendientes', [VentaController::class, 'ventasPendientes']);
+    Route::get('/ventas', [VentaController::class, 'index']);
+    Route::get('/ventas-pendientes', [VentaController::class, 'ventasPendientes']);
+    Route::get('/configuracion', [ConfiguracionController::class, 'getConfiguracion']);
+    Route::get('/compras', [CompraController::class, 'index']);
+    Route::get('/proveedores', [ProveedorController::class, 'index']);
+    Route::get('/cierre-de-caja/{ubicacion}', [CierreDeCajaController::class, 'show']);
+    Route::get('/clientes/{cedula}/ultimaCompra', [ClienteController::class, 'ultimaCompra']);
+    Route::get('/unidadMedida', [UnidadDeMedidaController::class, 'index']);
+    Route::get('/formasVenta', [FormaDeVentaController::class, 'index']);
 });

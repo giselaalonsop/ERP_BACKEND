@@ -11,7 +11,7 @@ class Compra extends Model
     use HasFactory;
 
     protected $fillable = [
-        'proveedor_id', 'usuario_id', 'fecha', 'monto_total', 'monto_abonado', 'monto_restante', 'estado','habilitar'
+        'proveedor_id', 'usuario_id', 'fecha', 'monto_total', 'monto_abonado', 'monto_restante', 'estado', 'habilitar', 'descripcion'
     ];
 
     public function proveedor()

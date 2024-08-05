@@ -102,6 +102,12 @@ class ClienteController extends Controller
     public function update(Request $request, Cliente $cliente)
     {
         try {
+            //editar venta donde cliente sea igual a cedula
+            $oldCedula = $cliente->cedula;
+            $newCedula = $request->cedula;
+            //editar venta donde cliente sea igual a cedula
+
+
             $validatedData = $request->validate([
                 'nombre' => 'sometimes|required|string|max:255',
                 'apellido' => 'sometimes|required|string|max:255',
@@ -114,6 +120,7 @@ class ClienteController extends Controller
             ]);
 
             $cliente->update($validatedData);
+            Venta::where('cliente', $oldCedula)->update(['cliente' => $newCedula]);
 
             return response()->json($cliente);
         } catch (ValidationException $e) {
