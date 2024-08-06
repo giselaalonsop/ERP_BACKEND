@@ -20,7 +20,7 @@ class ProductoController extends Controller
     public function habilitar($id)
     {
         $producto = Producto::find($id);
-        $producto->habilitar = 1;
+        Producto::where('codigo_barras', $producto->codigo_barras)->update(['habilitar' => 1]);
         $producto->save();
         return response()->json($producto, 200);
     }
@@ -76,20 +76,22 @@ class ProductoController extends Controller
         $validatedData = $request->validate([
             'codigo_barras' => 'required|string|max:255',
             'cantidad_a_cargar' => 'required|integer',
-            'ubicacion_destino' => 'required|string|max:255'
+            'ubicacion_destino' => 'required|string|max:255',
+            'cantidad_por_caja' => 'required|integer|min:1'
         ]);
 
         $producto = Producto::where('codigo_barras', $validatedData['codigo_barras'])
             ->where('ubicacion', $validatedData['ubicacion_destino'])
             ->first();
-
+        Log::info('Datos recibidos en la solicitud', ['data' => $request->all()]);
         if ($producto) {
             $cantidad_a_cargar_mayor = floor($validatedData['cantidad_a_cargar'] / $producto->cantidad_por_caja);
             $producto->cantidad_en_stock += $validatedData['cantidad_a_cargar'];
             $producto->cantidad_en_stock_mayor += $cantidad_a_cargar_mayor;
             $producto->save();
         } else {
-            $cantidad_a_cargar_mayor = floor($validatedData['cantidad_a_cargar'] / $request->input('cantidad_por_caja'));
+            Log::info('Datos recibidos en la solicitud', ['data' => $request->all()]);
+            $cantidad_a_cargar_mayor = floor($validatedData['cantidad_a_cargar'] /  $validatedData['cantidad_por_caja']);
             $nuevoProducto = Producto::create([
                 'codigo_barras' => $validatedData['codigo_barras'],
                 'nombre' => $request->input('nombre'),
@@ -219,17 +221,16 @@ class ProductoController extends Controller
             'nombre' => 'sometimes|required|max:255',
             'descripcion' => 'nullable',
             'categoria' => 'sometimes|required|max:255',
-            'cantidad_en_stock' => 'sometimes|required|numeric',
-            'cantidad_en_stock_mayor' => 'sometimes|required|integer',
+
             'unidad_de_medida' => 'sometimes|required|max:50',
-            'ubicacion' => 'nullable|max:255',
+
             'precio_compra' => 'sometimes|required|numeric',
             'porcentaje_ganancia' => 'sometimes|required|numeric',
             'porcentaje_ganancia_mayor' => 'sometimes|required|numeric',
             'forma_de_venta' => 'sometimes|required|max:255',
             'forma_de_venta_mayor' => 'sometimes|required|max:255',
             'proveedor' => 'sometimes|required|max:255',
-            'fecha_entrada' => 'sometimes|required|date',
+
             'fecha_caducidad' => 'nullable|date',
             'peso' => 'nullable|numeric',
             'imagen' => 'nullable',
@@ -243,7 +244,7 @@ class ProductoController extends Controller
             $validatedData['imagen'] = $imagenPath . $imagenFilename;
         }
 
-        $producto->update($validatedData);
+        Producto::where('codigo_barras', $producto->codigo_barras)->update($validatedData);
 
         return response()->json($producto, 200);
     }
@@ -251,7 +252,8 @@ class ProductoController extends Controller
 
     public function destroy(Producto $producto)
     {
-        $producto->habilitar = 0; // Deshabilitar el producto
+
+        Producto::where('codigo_barras', $producto->codigo_barras)->update(['habilitar' => 0]);
         $producto->save(); // Guardar el cambio
 
         return response()->json(null, 204); // Retorna una respuesta exitosa sin contenido
