@@ -9,26 +9,38 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
 
 class AuthenticatedSessionController extends Controller
 {
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): Response
+    public function store(LoginRequest $request)
     {
-        //no poder inciar si habilitar es 0
         $credentials = $request->only('email', 'password');
         $user = User::where('email', $credentials['email'])->first();
-        if ($user->habilitar == 0) {
-            return response()->json(['message' => 'User not found'], 404);
+
+        if ($user && $user->habilitar == 0) {
+            return response()->json(['message' => 'User desahbilitado'], 403); // Cambiar el código de estado a 403 Forbidden o usar otro más adecuado
         }
-        $request->authenticate();
+        if (!$user) {
+            return response()->json(['message' => 'Correo invalido'], 402);
+        }
+        if (!Hash::check($credentials['password'], $user->password)) {
+            return response()->json(['message' => 'Clave incorrecta'], 401);
+        }
+        // para correo no existente en la base de datos de usuario
+
+
 
         $request->session()->regenerate();
 
-        return response()->noContent();
+        Auth::login($user);
+
+        return response()->json(['message' => 'Login successful'], 200);
     }
+
 
     /**
      * Destroy an authenticated session.
