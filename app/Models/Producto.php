@@ -21,7 +21,6 @@ class Producto extends Model
         'porcentaje_ganancia',
         'descuento',
         'forma_de_venta',
-        'proveedor',
         'fecha_entrada',
         'fecha_caducidad',
         'peso',

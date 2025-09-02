@@ -24,6 +24,7 @@ return new class extends Migration
             $table->integer('cantidad_de_articulos_comprados')->default(0);
             $table->string('estatus')->default('Activo');
             $table->integer('frecuencia')->default(0);
+            $table->boolean('habilitar')->default(true);
             $table->timestamp('fecha_de_registro')->useCurrent();
             $table->timestamps();
         });

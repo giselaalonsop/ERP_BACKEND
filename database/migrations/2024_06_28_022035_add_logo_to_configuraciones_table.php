@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('configuracions', function (Blueprint $table) {
+        Schema::table('configuraciones', function (Blueprint $table) {
             $table->string('logo')->nullable()->after('direcciones'); // Campo para logo
         });
     }
@@ -21,7 +21,7 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('configuracions', function (Blueprint $table) {
+        Schema::table('configuraciones', function (Blueprint $table) {
             $table->dropColumn('logo'); // Eliminar campo logo
         });
     }

@@ -15,7 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('rol')->default('user');
+            $table->string('cedula')->unique();
             $table->string('email')->unique();
+            $table->string('location')->default('Principal');
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();

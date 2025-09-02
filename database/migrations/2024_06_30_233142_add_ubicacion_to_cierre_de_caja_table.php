@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('cierre_de_cajas', function (Blueprint $table) {
-            $table->string('ubicacion')->after('estado'); // Agrega el campo ubicacion sin valor por defecto
+            $table->string('ubicacion')->after('estado');
         });
     }
 

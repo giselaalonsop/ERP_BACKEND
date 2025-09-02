@@ -12,7 +12,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('ventas', function (Blueprint $table) {
-            $table->string('location')->default('Bejuma'); // Agregar campo de ubicación
+            $table->string('location')->default('Principal'); // Agregar campo de ubicación
         });
     }
 

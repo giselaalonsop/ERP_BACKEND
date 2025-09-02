@@ -21,7 +21,7 @@ class ProveedorController extends Controller
     {
         try {
             $proveedor = Proveedor::findOrFail($id);
-            $proveedor->habilitar = 1; // O el campo correcto que deseas actualizar
+            $proveedor->habilitar = 1;
             $proveedor->save();
 
             return response()->json(['message' => 'Proveedor habilitado exitosamente'], 200);

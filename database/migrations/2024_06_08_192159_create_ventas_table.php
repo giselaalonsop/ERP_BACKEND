@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('ventas', function (Blueprint $table) {
@@ -21,13 +18,21 @@ return new class extends Migration
             $table->string('comprobante');
             $table->string('estado');
             $table->string('mayor_o_detal');
+
+
+            $table->enum('metodo_pago', [
+                'dol_efectivo',
+                'bs_punto_de_venta',
+                'bs_pago_movil',
+                'zelle',
+                'bs_efectivo',
+                'pagar_luego'
+            ])->default('bs_punto_de_venta');
+
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('ventas');

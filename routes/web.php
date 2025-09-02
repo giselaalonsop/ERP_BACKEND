@@ -16,5 +16,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/login', function () {
     return ['Laravel' => app()->version()];
 });
+// routes/web.php
+Route::get('/health', fn() => 'ok');
+
 
 require __DIR__ . '/auth.php';

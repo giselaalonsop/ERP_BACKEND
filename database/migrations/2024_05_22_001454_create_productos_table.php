@@ -21,15 +21,15 @@ class CreateProductosTable extends Migration
             $table->string('categoria');
             $table->integer('cantidad_en_stock');
             $table->string('unidad_de_medida');
-            $table->string('ubicacion');
+            $table->string('ubicacion')->default('Principal');
             $table->decimal('precio_compra', 10, 2);
             $table->decimal('porcentaje_ganancia', 5, 2);
             $table->string('forma_de_venta');
-            $table->string('proveedor');
             $table->date('fecha_entrada');
             $table->date('fecha_caducidad');
             $table->decimal('peso', 10, 2)->nullable();
             $table->string('imagen')->nullable();
+            $table->boolean('habilitar')->default(true);
             $table->timestamps();
         });
     }

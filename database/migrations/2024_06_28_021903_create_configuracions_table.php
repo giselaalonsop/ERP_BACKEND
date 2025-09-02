@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('configuracions', function (Blueprint $table) {
+        Schema::create('configuraciones', function (Blueprint $table) {
             $table->id();
             $table->decimal('IVA', 5, 2)->default(0); // Campo para IVA
             $table->decimal('porcentaje_ganancia', 5, 2)->default(0); // Campo para porcentaje de ganancia
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('configuracions');
+        Schema::dropIfExists('configuraciones');
     }
 };
