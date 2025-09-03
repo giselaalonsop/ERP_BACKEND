@@ -27,7 +27,7 @@ class CompraController extends Controller
 
             // Validate the request data
             $validatedData = $request->validate([
-                'proveedor_id' => 'required|exists:proveedores,id',
+                'proveedor_id' => 'required',
                 'usuario_id' => 'required|exists:users,id',
                 'descripcion' => 'nullable',
                 'fecha' => 'required|date',
@@ -53,7 +53,7 @@ class CompraController extends Controller
     public function update(Request $request, Compra $compra)
     {
         $validatedData = $request->validate([
-            'proveedor_id' => 'required|exists:proveedores,id',
+            'proveedor_id' => 'required',
             'usuario_id' => 'required|exists:users,id',
             'fecha' => 'required|date',
             'monto_total' => 'required',

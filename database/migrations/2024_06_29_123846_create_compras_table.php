@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('compras', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('proveedor_id'); // ID del proveedor
+            $table->integer('proveedor_id'); // ID del proveedor
             $table->unsignedBigInteger('usuario_id'); // ID del usuario que realiza la compra
             $table->date('fecha'); // Fecha de la compra
             $table->decimal('monto_total', 10, 2); // Monto total de la compra
@@ -21,7 +21,6 @@ return new class extends Migration
             $table->decimal('monto_restante', 10, 2); // Monto restante
             $table->string('estado')->default('pendiente'); // Estado de la compra (pendiente, pagada, etc.)
             $table->timestamps();
-            $table->foreign('usuario_id')->references('id')->on('users')->onDelete('cascade'); // Relación con la tabla users
         });
     }
 

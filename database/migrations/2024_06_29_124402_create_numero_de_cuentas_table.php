@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('numero_de_cuentas', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('proveedor_id'); // ID del proveedor
+            $table->integer('proveedor_id'); // ID del proveedor
             $table->string('banco'); // Nombre del banco
             $table->string('numero_cuenta'); // Número de cuenta
             $table->string('rif_cedula'); // RIF o cédula del titular

@@ -20,7 +20,7 @@ class NumeroDeCuentaController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'proveedor_id' => 'required|exists:proveedores,id',
+            'proveedor_id' => 'required',
             'banco' => 'required|string|max:255',
             'numero_cuenta' => 'required|string|max:50',
             'rif_cedula' => 'required|string|max:20',
@@ -35,7 +35,7 @@ class NumeroDeCuentaController extends Controller
     public function update(Request $request, NumeroDeCuenta $numeroDeCuenta)
     {
         $validatedData = $request->validate([
-            'proveedor_id' => 'required|exists:proveedores,id',
+            'proveedor_id' => 'required',
             'banco' => 'required|string|max:255',
             'numero_cuenta' => 'required|string|max:50',
             'rif_cedula' => 'required|string|max:20',
