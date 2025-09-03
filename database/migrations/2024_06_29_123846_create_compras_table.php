@@ -21,8 +21,6 @@ return new class extends Migration
             $table->decimal('monto_restante', 10, 2); // Monto restante
             $table->string('estado')->default('pendiente'); // Estado de la compra (pendiente, pagada, etc.)
             $table->timestamps();
-
-            $table->foreign('proveedor_id')->references('id')->on('proveedores')->onDelete('cascade'); // Relación con la tabla proveedores
             $table->foreign('usuario_id')->references('id')->on('users')->onDelete('cascade'); // Relación con la tabla users
         });
     }

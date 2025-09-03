@@ -20,8 +20,6 @@ return new class extends Migration
             $table->string('telefono'); // Número de teléfono
             $table->boolean('pago_movil')->default(false); // Indica si es pago móvil
             $table->timestamps();
-
-            $table->foreign('proveedor_id')->references('id')->on('proveedores')->onDelete('cascade'); // Relación con la tabla proveedores
         });
     }
 
