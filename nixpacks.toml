@@ -5,7 +5,6 @@ cmds = [
 
 [phases.build]
 cmds = [
-  "php artisan key:generate --force || true",
   "php artisan storage:link || true",
   "php artisan config:cache",
   "php artisan route:cache",
@@ -13,4 +12,4 @@ cmds = [
 ]
 
 [start]
-cmd = "/assets/php-nginx-start.sh"
+cmd = "bash -lc 'php artisan migrate --force --no-interaction || true; php artisan optimize; exec /assets/php-nginx-start.sh'"
