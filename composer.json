@@ -53,7 +53,7 @@
         "allow-plugins": {
             "pestphp/pest-plugin": true
         },
-        "platform": {
+        "require": {
             "php": "8.2.4"
         }
     },
