@@ -17,7 +17,8 @@ Route::get('/login', function () {
     return ['Laravel' => app()->version()];
 });
 // routes/web.php
-Route::get('/health', fn() => 'ok');
+Route::get('/health', fn() => response()->json(['ok'=>true], 200));
+
 
 
 require __DIR__ . '/auth.php';
