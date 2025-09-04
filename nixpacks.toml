@@ -11,6 +11,6 @@ cmds = [
   "php artisan view:cache"
 ]
 
+
 [start]
-cmd = "bash -lc 'set -euo pipefail; php artisan config:clear; 
-php artisan migrate --force --no-interaction --isolated || true; php artisan optimize; php-fpm -F & nginx -g \"daemon off;\"'"
+cmd = "bash -lc 'set -euo pipefail; php artisan config:clear; php artisan migrate --force --no-interaction --isolated || true; php artisan optimize; php-fpm -F & nginx -g \"daemon off;\"'"
