@@ -12,4 +12,5 @@ cmds = [
 ]
 
 [start]
-cmd = "bash -lc 'php artisan migrate --force --no-interaction || true; php artisan optimize'"
+cmd = "bash -lc 'set -euo pipefail; php artisan config:clear; 
+php artisan migrate --force --no-interaction --isolated || true; php artisan optimize; php-fpm -F & nginx -g \"daemon off;\"'"
