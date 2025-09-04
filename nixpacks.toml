@@ -5,8 +5,12 @@ cmds = [
 
 [phases.build]
 cmds = [
-  "php artisan storage:link || true"
+  "php artisan storage:link || true",
+  "php artisan config:cache",
+  "php artisan route:cache",
+  "php artisan view:cache"
 ]
 
 [start]
-cmd = "bash -lc 'set -euo pipefail; php artisan config:clear; php artisan migrate --force --no-interaction --isolated || true; php artisan optimize; mkdir -p /var/log/nginx /var/cache/nginx; rm -f /var/log/nginx/access.log /var/log/nginx/error.log; ln -s /dev/stdout /var/log/nginx/access.log; ln -s /dev/stderr /var/log/nginx/error.log; if [ -x /assets/php-nginx-start.sh ]; then /assets/php-nginx-start.sh; else php-fpm -F & nginx -g \"daemon off;\"; fi'"
+cmd = bash -lc 'php artisan migrate --force --no-interaction || true; php -S 0.0.0.0:$PORT -t public public/index.php'
+
