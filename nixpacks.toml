@@ -12,4 +12,4 @@ cmds = [
 ]
 
 [start]
-cmd = "bash -lc 'php artisan migrate --force --no-interaction || true; php artisan optimize; exec /assets/php-nginx-start.sh'"
+cmd = "bash -lc 'php artisan migrate --force --no-interaction || true; php artisan optimize'"
