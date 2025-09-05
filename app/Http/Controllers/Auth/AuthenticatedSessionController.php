@@ -19,22 +19,28 @@ class AuthenticatedSessionController extends Controller
     public function store(LoginRequest $request)
     {
         $credentials = $request->only('email', 'password');
+        log::info('Attempting login for user: ' . $credentials['email']);
+
         $user = User::where('email', $credentials['email'])->first();
+        Log::info('User found: ' . ($user ? $user->email : 'none'));
 
         if ($user && $user->habilitar == 0) {
-            return response()->json(['message' => 'User desahbilitado'], 403); // Cambiar el código de estado a 403 Forbidden o usar otro más adecuado
+            Log::warning('User disabled: ' . $user->email);
+            return response()->json(['message' => 'User desahbilitado'], 403);
+            // Cambiar el código de estado a 403 Forbidden o usar otro más adecuado
         }
         if (!$user) {
+            Log::warning('User not found: ' . $credentials['email']);
             return response()->json(['message' => 'Correo invalido'], 402);
         }
         if (!Hash::check($credentials['password'], $user->password)) {
+            Log::warning('Invalid password attempt for user: ' . $credentials['email']);
             return response()->json(['message' => 'Clave incorrecta'], 401);
         }
         // para correo no existente en la base de datos de usuario
-
-
-
         $request->session()->regenerate();
+        Log::info('User logged in: ' . $user->email);
+        Log::info('User permissions: ' . $user->permissions);
 
         Auth::login($user);
 
