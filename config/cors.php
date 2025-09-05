@@ -15,13 +15,18 @@ return [
     |
     */
 
-    'paths' => ['*'],
+   'paths' => ['api/*', 'sanctum/csrf-cookie'],
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:3000')],
+    'allowed_origins' => [
+        'http://localhost:3000',
+        'https://erp-black.vercel.app',
+        'https://gcode-sytem.com',
+        'https://www.gcode-sytem.com',
+    ],
 
-    'allowed_origins_patterns' => [],
+
 
     'allowed_headers' => ['*'],
 
