@@ -15,25 +15,13 @@ return [
     |
     */
 
-    'paths' => ['*', 'sanctum/csrf-cookie'],
-
+    'paths' => ['api/*', 'login', 'logout', 'register', 'user', 'sanctum/csrf-cookie'],
     'allowed_methods' => ['*'],
-
-    'allowed_origins' => [
-        'http://localhost:3000',
-        'https://erp-black.vercel.app',
-        'https://gcode-sytem.com',
-        'https://www.gcode-sytem.com',
-    ],
-
-
-
+    'allowed_origins' => ['https://www.gcode-sytem.com', 'https://gcode-sytem.com'],
+    'allowed_origins_patterns' => ['#^https://.*\.vercel\.app$#'], // opcional para previews
     'allowed_headers' => ['*'],
-
     'exposed_headers' => [],
-
     'max_age' => 0,
-
     'supports_credentials' => true,
 
 ];
