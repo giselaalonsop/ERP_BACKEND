@@ -15,12 +15,11 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie', 'login', 'logout'],
+    'paths' => ['api/*'], // al usar tokens, no necesitas incluir login/sanctum
     'allowed_methods' => ['*'],
-    'allowed_origins' => ['https://www.gcode-sytem.com'], // FE exacto
+    'allowed_origins' => ['https://www.gcode-system.com'], // FE exacto
     'allowed_headers' => ['*'],
-    'exposed_headers' => [],
-    'supports_credentials' => true,
+    'supports_credentials' => false,
 
 
 ];
