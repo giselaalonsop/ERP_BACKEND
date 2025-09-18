@@ -15,13 +15,12 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'login', 'logout', 'register', 'user', 'sanctum/csrf-cookie'],
+    'paths' => ['api/*', 'sanctum/csrf-cookie', 'login', 'logout'],
     'allowed_methods' => ['*'],
-    'allowed_origins' => ['https://www.gcode-sytem.com', 'https://gcode-sytem.com'],
-    'allowed_origins_patterns' => ['#^https://.*\.vercel\.app$#'], // opcional para previews
+    'allowed_origins' => ['https://www.gcode-sytem.com'], // FE exacto
     'allowed_headers' => ['*'],
     'exposed_headers' => [],
-    'max_age' => 0,
     'supports_credentials' => true,
+
 
 ];
