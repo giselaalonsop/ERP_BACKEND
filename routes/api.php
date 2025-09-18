@@ -20,7 +20,6 @@ use App\Http\Controllers\ReportController;
 use App\Models\Proveedor;
 use App\Http\Controllers\FormaDeVentaController;
 use App\Http\Controllers\UnidadDeMedidaController;
-use Illuminate\Support\Facades\Auth;
 
 
 
@@ -35,40 +34,6 @@ use Illuminate\Support\Facades\Auth;
 |
 */
 
-Route::post('/login-token', function (Request $request) {
-    $request->validate([
-        'email' => ['required', 'email'],
-        'password' => ['required'],
-    ]);
-
-    if (! Auth::attempt($request->only('email', 'password'))) {
-        return response()->json(['message' => 'Credenciales inválidas'], 401);
-    }
-
-    /** @var \App\Models\User $user */
-    $user = $request->user();
-
-    // Opcional: si tu app “deshabilita” usuarios con habilitar=0
-    if ((int)$user->habilitar === 0) {
-        return response()->json(['message' => 'Usuario deshabilitado'], 403);
-    }
-
-    // Puedes borrar tokens previos si quieres “uno a la vez”
-    // $user->tokens()->delete();
-
-    $token = $user->createToken('web-token')->plainTextToken;
-
-    return response()->json([
-        'token' => $token,
-        'user'  => $user,
-    ], 200);
-});
-
-Route::middleware('auth:sanctum')->post('/logout-token', function (Request $request) {
-    // Revoca SOLO el token actual
-    $request->user()->currentAccessToken()?->delete();
-    return response()->json(['ok' => true]);
-});
 Route::middleware('role:user')->group(function () {
     Route::get('/productos', [ProductoController::class, 'index']);
     Route::get('/analisis', [ReportController::class, 'getReportData']);
