@@ -18,35 +18,42 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request)
     {
-        $credentials = $request->only('email', 'password');
-        log::info('Attempting login for user: ' . $credentials['email']);
+        // (Opcional) ya que usas LoginRequest, la validación se ejecuta antes de entrar aquí.
+        $request->validated();
 
-        $user = User::where('email', $credentials['email'])->first();
-        Log::info('User found: ' . ($user ? $user->email : 'none'));
+        $email    = $request->input('email');
+        $remember = $request->boolean('remember');
 
-        if ($user && $user->habilitar == 0) {
+        Log::info('Attempting login for user: ' . $email);
+
+        // Reglas de negocio antes de intentar autenticar
+        $user = User::where('email', $email)->first();
+
+        if ($user && (int)$user->habilitar === 0) {
             Log::warning('User disabled: ' . $user->email);
-            return response()->json(['message' => 'User desahbilitado'], 403);
-            // Cambiar el código de estado a 403 Forbidden o usar otro más adecuado
+            return response()->json(['message' => 'Usuario deshabilitado'], 403);
         }
-        if (!$user) {
-            Log::warning('User not found: ' . $credentials['email']);
-            return response()->json(['message' => 'Correo invalido'], 402);
+
+        // Intenta autenticar (valida hash y hace login)
+        $ok = Auth::attempt(
+            ['email' => $email, 'password' => $request->input('password')],
+            $remember
+        );
+
+        if (!$ok) {
+            // No filtres si fue email o password → mensaje único
+            Log::warning('Invalid credentials for: ' . $email);
+            return response()->json(['message' => 'Credenciales inválidas'], 422);
         }
-        if (!Hash::check($credentials['password'], $user->password)) {
-            Log::warning('Invalid password attempt for user: ' . $credentials['email']);
-            return response()->json(['message' => 'Clave incorrecta'], 401);
-        }
-        // para correo no existente en la base de datos de usuario
+
+        // Prevención de fijación de sesión → SIEMPRE después de autenticar
         $request->session()->regenerate();
-        Log::info('User logged in: ' . $user->email);
-        Log::info('User permissions: ' . $user->permissions);
 
-        Auth::login($user);
+        Log::info('User logged in: ' . Auth::user()->email);
 
-        return response()->json(['message' => 'Login successful'], 200);
+        // Para SPA: 204 No Content (sin redirección)
+        return response()->noContent();
     }
-
 
     /**
      * Destroy an authenticated session.
