@@ -17,43 +17,30 @@ class AuthenticatedSessionController extends Controller
      * Handle an incoming authentication request.
      */
     public function store(LoginRequest $request)
-    {
-        // (Opcional) ya que usas LoginRequest, la validación se ejecuta antes de entrar aquí.
-        $request->validated();
+{
+    $request->validated();
 
-        $email    = $request->input('email');
-        $remember = $request->boolean('remember');
-
-        Log::info('Attempting login for user: ' . $email);
-
-        // Reglas de negocio antes de intentar autenticar
-        $user = User::where('email', $email)->first();
-
-        if ($user && (int)$user->habilitar === 0) {
-            Log::warning('User disabled: ' . $user->email);
-            return response()->json(['message' => 'Usuario deshabilitado'], 403);
-        }
-
-        // Intenta autenticar (valida hash y hace login)
-        $ok = Auth::attempt(
-            ['email' => $email, 'password' => $request->input('password')],
-            $remember
-        );
-
-        if (!$ok) {
-            // No filtres si fue email o password → mensaje único
-            Log::warning('Invalid credentials for: ' . $email);
-            return response()->json(['message' => 'Credenciales inválidas'], 422);
-        }
-
-        // Prevención de fijación de sesión → SIEMPRE después de autenticar
-        $request->session()->regenerate();
-
-        Log::info('User logged in: ' . Auth::user()->email);
-
-        // Para SPA: 204 No Content (sin redirección)
-        return response()->noContent();
+    // Regla de negocio opcional: usuario deshabilitado
+    $user = \App\Models\User::where('email', $request->email)->first();
+    if ($user && (int)$user->habilitar === 0) {
+        return response()->json(['message' => 'Usuario deshabilitado'], 403);
     }
+
+    $ok = Auth::attempt(
+        ['email' => $request->email, 'password' => $request->password],
+        (bool) $request->remember
+    );
+
+    if (!$ok) {
+        return response()->json(['message' => 'Credenciales inválidas'], 422);
+    }
+
+    // Mitiga session fixation DESPUÉS de autenticar
+    $request->session()->regenerate();
+
+    // 👈 Para SPA: nada de redirect
+    return response()->noContent(); // 204
+}
 
     /**
      * Destroy an authenticated session.
