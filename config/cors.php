@@ -15,7 +15,7 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie', 'login', 'logout'],
+    'paths' => ['api/*', 'sanctum/csrf-cookie', 'login', 'logout', 'dashboard'],
     'allowed_methods' => ['*'],
     'allowed_origins' => ['https://www.gcode-sytem.com'], // FE exacto
     'allowed_headers' => ['*'],
